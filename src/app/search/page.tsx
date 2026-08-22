@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 type UserResult = {
   id: string;
@@ -62,8 +63,11 @@ export default function SearchPage() {
             className="flex items-center gap-3 rounded-lg border border-black/10 dark:border-white/10 px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5"
           >
             <Avatar src={user.avatarUrl} username={user.username} size={40} />
-            <div>
-              <p className="text-sm font-medium">{user.username}</p>
+            <div className="min-w-0">
+              <p className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                <span className="truncate">{user.username}</span>
+                <VerifiedBadge className="h-3.5 w-3.5" />
+              </p>
               {user.name && <p className="text-xs text-black/60 dark:text-white/60">{user.name}</p>}
             </div>
           </Link>

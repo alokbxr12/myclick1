@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { PostCard } from "@/components/PostCard";
 import { Avatar } from "@/components/Avatar";
 import { PlusSquareIcon, PolaroidCameraIcon, SearchIcon } from "@/components/Icons";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import type { Post } from "@/types/post";
 
 export default function FeedPage() {
@@ -85,7 +86,10 @@ export default function FeedPage() {
               <Avatar src={session?.user.avatarUrl} username={session?.user.username ?? "photographer"} size={46} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-white">{session?.user.name ?? session?.user.username}</p>
-                <p className="truncate text-xs text-white/35">@{session?.user.username}</p>
+                <p className="flex min-w-0 items-center gap-1 text-xs text-white/35">
+                  <span className="truncate">@{session?.user.username}</span>
+                  <VerifiedBadge className="h-3 w-3" />
+                </p>
               </div>
             </div>
 

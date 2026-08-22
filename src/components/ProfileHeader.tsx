@@ -7,6 +7,7 @@ import { ProfileStats } from "./ProfileStats";
 import { EditAvatarModal } from "./EditAvatarModal";
 import { DeleteAccountModal } from "./DeleteAccountModal";
 import { CameraEditIcon, TrashIcon } from "./Icons";
+import { VerifiedBadge } from "./VerifiedBadge";
 
 export function ProfileHeader({
   user,
@@ -27,10 +28,10 @@ export function ProfileHeader({
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   return (
-    <div className="glass-panel rounded-2xl p-6 shadow-lg flex items-center gap-6">
+    <div className="glass-panel flex flex-col items-stretch gap-5 rounded-2xl p-4 shadow-lg sm:flex-row sm:items-center sm:gap-6 sm:p-6">
       {/* Avatar with click-to-edit overlay when isMe */}
       <div
-        className={`relative shrink-0 ${isMe ? "cursor-pointer group" : ""}`}
+        className={`relative shrink-0 self-center sm:self-auto ${isMe ? "cursor-pointer group" : ""}`}
         onClick={() => isMe && setShowEditAvatar(true)}
       >
         <Avatar src={user.avatarUrl} username={user.username} size={96} />
@@ -41,15 +42,22 @@ export function ProfileHeader({
         )}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold truncate">{user.username}</h1>
-            {!isMe && <FollowButton username={user.username} initialFollowing={isFollowing} />}
+      <div className="w-full min-w-0 flex-1">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
+            <div className="flex max-w-full min-w-0 items-center gap-1.5">
+              <h1 className="min-w-0 truncate text-lg font-semibold">{user.username}</h1>
+              <VerifiedBadge className="h-4 w-4" />
+            </div>
+            {!isMe && (
+              <div className="shrink-0">
+                <FollowButton username={user.username} initialFollowing={isFollowing} />
+              </div>
+            )}
           </div>
 
           {isMe && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setShowEditAvatar(true)}
                 className="rounded-lg border border-black/15 dark:border-white/20 px-3 py-1 text-xs font-medium hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center gap-1.5"
@@ -76,8 +84,8 @@ export function ProfileHeader({
           following={user._count.following}
         />
 
-        {user.name && <p className="text-sm font-medium mt-1 truncate">{user.name}</p>}
-        {user.bio && <p className="text-sm text-black/70 dark:text-white/70 mt-0.5">{user.bio}</p>}
+        {user.name && <p className="mt-2 truncate text-sm font-medium">{user.name}</p>}
+        {user.bio && <p className="mt-0.5 break-words text-sm text-black/70 dark:text-white/70">{user.bio}</p>}
       </div>
 
       {showEditAvatar && (

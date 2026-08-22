@@ -18,15 +18,24 @@ export function ProfileStats({
 
   return (
     <>
-      <div className="flex gap-6 text-sm mb-2">
-        <span>
-          <strong>{posts}</strong> posts
+      <div className="mb-3 grid w-full grid-cols-3 gap-2 text-center text-xs sm:flex sm:w-auto sm:gap-6 sm:text-left sm:text-sm">
+        <span className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2 sm:block sm:bg-transparent sm:p-0">
+          <strong className="text-white">{posts}</strong>{" "}
+          <span className="text-white/48">posts</span>
         </span>
-        <button onClick={() => setModal("followers")} className="hover:underline">
-          <strong>{followers}</strong> followers
+        <button
+          onClick={() => setModal("followers")}
+          className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2 hover:bg-white/[0.065] sm:block sm:bg-transparent sm:p-0 sm:hover:bg-transparent sm:hover:underline"
+        >
+          <strong className="text-white">{followers}</strong>{" "}
+          <span className="text-white/48">followers</span>
         </button>
-        <button onClick={() => setModal("following")} className="hover:underline">
-          <strong>{following}</strong> following
+        <button
+          onClick={() => setModal("following")}
+          className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2 hover:bg-white/[0.065] sm:block sm:bg-transparent sm:p-0 sm:hover:bg-transparent sm:hover:underline"
+        >
+          <strong className="text-white">{following}</strong>{" "}
+          <span className="text-white/48">following</span>
         </button>
       </div>
 

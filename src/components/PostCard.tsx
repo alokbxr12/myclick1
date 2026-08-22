@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { HeartIcon, CommentIcon, ShareIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
+import { VerifiedBadge } from "./VerifiedBadge";
 import { formatPostDate } from "@/lib/formatPostDate";
 import type { Comment, Post } from "@/types/post";
 
@@ -133,6 +134,7 @@ export function PostCard({
             </p>
             <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/32">
               <span className="truncate">@{post.author.username}</span>
+              <VerifiedBadge className="h-3 w-3" />
               <span aria-hidden="true">·</span>
               <time>{formatPostDate(post.createdAt)}</time>
             </div>
@@ -256,8 +258,9 @@ export function PostCard({
           ) : (
             post.caption && (
               <p className="text-sm leading-6 text-white/68">
-                <Link href={`/profile/${post.author.username}`} className="mr-1.5 font-semibold text-white hover:text-red-300">
-                  {post.author.username}
+                <Link href={`/profile/${post.author.username}`} className="mr-1.5 inline-flex items-center gap-1 font-semibold text-white hover:text-red-300">
+                  <span>{post.author.username}</span>
+                  <VerifiedBadge className="h-3 w-3" />
                 </Link>
                 {caption}
               </p>
@@ -273,8 +276,9 @@ export function PostCard({
                 <div key={comment.id} className="flex items-start gap-3">
                   <Avatar src={comment.user.avatarUrl} username={comment.user.username} size={28} />
                   <p className="min-w-0 text-xs leading-5 text-white/58">
-                    <Link href={`/profile/${comment.user.username}`} className="mr-1.5 font-semibold text-white/85 hover:text-red-300">
-                      {comment.user.username}
+                    <Link href={`/profile/${comment.user.username}`} className="mr-1.5 inline-flex items-center gap-1 font-semibold text-white/85 hover:text-red-300">
+                      <span>{comment.user.username}</span>
+                      <VerifiedBadge className="h-3 w-3" />
                     </Link>
                     {comment.content}
                   </p>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "./Avatar";
 import { FollowButton } from "./FollowButton";
+import { VerifiedBadge } from "./VerifiedBadge";
 
 type ListUser = {
   id: string;
@@ -83,7 +84,10 @@ export function FollowListModal({
               >
                 <Avatar src={user.avatarUrl} username={user.username} size={40} />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{user.username}</p>
+                  <p className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                    <span className="truncate">{user.username}</span>
+                    <VerifiedBadge className="h-3.5 w-3.5" />
+                  </p>
                   {user.name && (
                     <p className="text-xs text-black/60 dark:text-white/60 truncate">{user.name}</p>
                   )}

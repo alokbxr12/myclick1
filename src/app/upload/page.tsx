@@ -181,9 +181,23 @@ export default function UploadPage() {
           <button
             type="submit"
             disabled={loading}
-            className="glossy rounded-md text-white px-4 py-2 text-sm font-semibold disabled:opacity-50"
+            className="group relative isolate mt-1 flex min-h-16 w-full items-center gap-3 overflow-hidden rounded-2xl border border-red-300/20 bg-[linear-gradient(135deg,#d83943_0%,#981b25_55%,#3f090d_100%)] px-3.5 py-3 text-left text-white shadow-[0_18px_45px_-22px_rgba(220,38,38,0.95),inset_0_1px_0_rgba(255,255,255,0.25)] transition duration-300 hover:-translate-y-0.5 hover:border-red-200/35 hover:shadow-[0_22px_50px_-20px_rgba(220,38,38,1),inset_0_1px_0_rgba(255,255,255,0.32)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
           >
-            {loading ? "Uploading…" : "Share photo"}
+            <span className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_0%,rgba(255,255,255,0.2),transparent_38%)]" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-black/15 shadow-inner">
+              <UploadCloudIcon className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold tracking-[-0.01em]">
+                {loading ? "Publishing photograph…" : "Publish photograph"}
+              </span>
+              <span className="mt-0.5 block text-[10px] font-medium text-white/60">
+                Share this frame with the MyClick community
+              </span>
+            </span>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-lg transition group-hover:translate-x-0.5 group-hover:bg-white/15" aria-hidden="true">
+              →
+            </span>
           </button>
         </form>
       </div>

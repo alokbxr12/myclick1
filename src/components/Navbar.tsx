@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { HomeIcon, SearchIcon, PlusSquareIcon, LogOutIcon, PolaroidCameraIcon } from "./Icons";
+import { VerifiedBadge } from "./VerifiedBadge";
 
 const navItems = [
   { href: "/feed", label: "Feed", icon: HomeIcon },
@@ -74,8 +75,9 @@ export function Navbar() {
               }`}
             >
               <Avatar src={session.user.avatarUrl} username={session.user.username} size={30} />
-              <span className="hidden max-w-24 truncate text-xs font-semibold text-white/72 sm:block">
-                {session.user.username}
+              <span className="hidden min-w-0 max-w-28 items-center gap-1 text-xs font-semibold text-white/72 sm:flex">
+                <span className="truncate">{session.user.username}</span>
+                <VerifiedBadge className="h-3 w-3" />
               </span>
             </Link>
 
