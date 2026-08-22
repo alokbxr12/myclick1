@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
@@ -61,16 +60,8 @@ export default function RegisterPage() {
       return;
     }
 
-    const result = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-
-    if (result?.error) {
-      router.push("/login");
-      return;
-    }
-
-    router.push("/feed");
-    router.refresh();
+    router.push("/login?accountCreated=1");
   }
 
   return (

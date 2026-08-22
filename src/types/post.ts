@@ -25,4 +25,6 @@ export type Comment = {
   content: string;
   createdAt: string;
   user: PostAuthor;
+  _count: { likes: number };
+  likedByMe: boolean;
 };

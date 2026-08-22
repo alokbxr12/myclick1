@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -25,6 +25,14 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const accountCreated = searchParams.get("accountCreated") === "1";
+  const [showAccountCreated, setShowAccountCreated] = useState(accountCreated);
+
+  useEffect(() => {
+    if (!accountCreated) return;
+    const timer = window.setTimeout(() => setShowAccountCreated(false), 6000);
+    return () => window.clearTimeout(timer);
+  }, [accountCreated]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -50,6 +58,30 @@ function LoginForm() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#09090b] text-white selection:bg-red-500/35">
+      {showAccountCreated && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="auth-enter fixed left-1/2 top-5 z-[70] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center gap-3 rounded-2xl border border-emerald-400/20 bg-[#111914] px-4 py-3.5 text-emerald-50 shadow-[0_20px_60px_-22px_rgba(16,185,129,0.7)]"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-400/12 text-emerald-400">
+            <SuccessIcon className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold">Account is created</p>
+            <p className="mt-0.5 text-xs text-emerald-100/58">Now sign in to enter your gallery.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAccountCreated(false)}
+            aria-label="Dismiss account-created message"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-emerald-100/40 transition hover:bg-white/[0.06] hover:text-white"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.18fr)_minmax(430px,0.82fr)]">
         <section className="relative hidden min-h-screen overflow-hidden lg:flex" aria-label="MyClick photography community">
           <PhotoCollageBackground />
@@ -274,6 +306,15 @@ function ArrowIcon({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className} aria-hidden="true">
       <path d="M5 12h14m-5-5 5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function SuccessIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12 2.6 2.6L16.5 9" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

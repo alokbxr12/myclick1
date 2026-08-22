@@ -7,6 +7,8 @@ type RouteParams = { params: Promise<{ id: string }> };
 // GET /api/posts/:id/comments -> list comments for a post
 export async function GET(_request: Request, { params }: RouteParams) {
   const { id: postId } = await params;
+  const session = await auth();
+  const userId = session!.user.id;
 
   const comments = await prisma.comment.findMany({
     where: { postId },
@@ -16,10 +18,17 @@ export async function GET(_request: Request, { params }: RouteParams) {
       content: true,
       createdAt: true,
       user: { select: { id: true, username: true, name: true, avatarUrl: true } },
+      _count: { select: { likes: true } },
+      likes: { where: { userId }, select: { id: true } },
     },
   });
 
-  return NextResponse.json({ comments });
+  return NextResponse.json({
+    comments: comments.map(({ likes, ...comment }) => ({
+      ...comment,
+      likedByMe: likes.length > 0,
+    })),
+  });
 }
 
 // POST /api/posts/:id/comments -> add a comment
@@ -49,8 +58,9 @@ export async function POST(request: Request, { params }: RouteParams) {
       content: true,
       createdAt: true,
       user: { select: { id: true, username: true, name: true, avatarUrl: true } },
+      _count: { select: { likes: true } },
     },
   });
 
-  return NextResponse.json({ comment }, { status: 201 });
+  return NextResponse.json({ comment: { ...comment, likedByMe: false } }, { status: 201 });
 }

@@ -6,7 +6,8 @@ import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { HeartIcon, CommentIcon, ShareIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
-import { formatPostDate } from "@/lib/formatPostDate";
+import { PostLikesModal } from "./PostLikesModal";
+import { formatCommentDateTime, formatPostDate } from "@/lib/formatPostDate";
 import type { Comment, Post } from "@/types/post";
 
 export function PostCard({
@@ -23,6 +24,7 @@ export function PostCard({
   const { data: session } = useSession();
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post._count.likes);
+  const [showLikes, setShowLikes] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentCount, setCommentCount] = useState(post._count.comments);
@@ -39,6 +41,7 @@ export function PostCard({
   const [busy, setBusy] = useState(false);
   const [shared, setShared] = useState(false);
   const [popping, setPopping] = useState(false);
+  const [commentLikeBusy, setCommentLikeBusy] = useState<string | null>(null);
 
   const isOwner = session?.user?.id === post.author.id;
   const hasExif = post.cameraModel || post.focalLength || post.aperture || post.shutterSpeed || post.iso;
@@ -84,6 +87,22 @@ export function PostCard({
     }
   }
 
+  async function toggleCommentLike(commentId: string) {
+    setCommentLikeBusy(commentId);
+    const res = await fetch(`/api/posts/${post.id}/comments/${commentId}/like`, { method: "POST" });
+    setCommentLikeBusy(null);
+    if (!res.ok) return;
+
+    const data = await res.json();
+    setComments((current) =>
+      current.map((comment) =>
+        comment.id === commentId
+          ? { ...comment, likedByMe: data.liked, _count: { likes: data.likeCount } }
+          : comment
+      )
+    );
+  }
+
   async function saveCaption() {
     setBusy(true);
     const res = await fetch(`/api/posts/${post.id}`, {
@@ -120,7 +139,8 @@ export function PostCard({
   }
 
   return (
-    <article className="overflow-hidden rounded-[1.75rem] border border-white/[0.075] bg-[#101014] shadow-[0_26px_80px_-48px_rgba(0,0,0,0.95)] transition duration-300 hover:border-white/[0.11]">
+    <>
+      <article className="overflow-hidden rounded-[1.75rem] border border-white/[0.075] bg-[#101014] shadow-[0_26px_80px_-48px_rgba(0,0,0,0.95)] transition duration-300 hover:border-white/[0.11]">
       <header className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
         <Link href={`/profile/${post.author.username}`} className="group flex min-w-0 items-center gap-3">
           <div className="rounded-full bg-gradient-to-br from-red-400 via-red-600 to-amber-500 p-[2px]">
@@ -189,16 +209,26 @@ export function PostCard({
       <div className="px-4 pb-5 pt-4 sm:px-5 sm:pb-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <button
-              onClick={toggleLike}
-              className={`flex h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold transition ${
+            <div
+              className={`flex h-10 items-center rounded-xl text-xs font-semibold transition ${
                 liked ? "bg-red-500/10 text-red-400" : "bg-white/[0.035] text-white/55 hover:bg-white/[0.07] hover:text-white"
               }`}
-              aria-label={liked ? "Unlike" : "Like"}
             >
-              <HeartIcon filled={liked} className={`h-5 w-5 ${popping ? "like-pop" : ""}`} />
-              <span>{likeCount}</span>
-            </button>
+              <button
+                onClick={toggleLike}
+                className="flex h-10 items-center pl-3 pr-2"
+                aria-label={liked ? "Unlike this post" : "Like this post"}
+              >
+                <HeartIcon filled={liked} className={`h-5 w-5 ${popping ? "like-pop" : ""}`} />
+              </button>
+              <button
+                onClick={() => setShowLikes(true)}
+                className="flex h-10 min-w-8 items-center justify-center rounded-r-xl pr-3 transition hover:text-white"
+                aria-label={`View ${likeCount} ${likeCount === 1 ? "like" : "likes"}`}
+              >
+                {likeCount}
+              </button>
+            </div>
             <button
               onClick={loadComments}
               className={`flex h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold transition ${
@@ -275,13 +305,29 @@ export function PostCard({
               {comments.map((comment) => (
                 <div key={comment.id} className="flex items-start gap-3">
                   <Avatar src={comment.user.avatarUrl} username={comment.user.username} size={28} />
-                  <p className="min-w-0 text-xs leading-5 text-white/58">
-                    <Link href={`/profile/${comment.user.username}`} className="mr-1.5 inline-flex items-center gap-1 font-semibold text-white/85 hover:text-red-300">
-                      <span>{comment.user.username}</span>
-                      <VerifiedBadge className="h-3 w-3" />
-                    </Link>
-                    {comment.content}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words text-xs leading-5 text-white/58">
+                      <Link href={`/profile/${comment.user.username}`} className="mr-1.5 inline-flex items-center gap-1 font-semibold text-white/85 hover:text-red-300">
+                        <span>{comment.user.username}</span>
+                        <VerifiedBadge className="h-3 w-3" />
+                      </Link>
+                      {comment.content}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-white/28">
+                      <time dateTime={comment.createdAt}>{formatCommentDateTime(comment.createdAt)}</time>
+                      <button
+                        onClick={() => toggleCommentLike(comment.id)}
+                        disabled={commentLikeBusy === comment.id}
+                        className={`inline-flex items-center gap-1 font-semibold transition hover:text-red-300 disabled:opacity-45 ${
+                          comment.likedByMe ? "text-red-400" : "text-white/34"
+                        }`}
+                        aria-label={comment.likedByMe ? "Unlike comment" : "Like comment"}
+                      >
+                        <HeartIcon filled={comment.likedByMe} className="h-3 w-3" />
+                        <span>{comment._count.likes > 0 ? comment._count.likes : "Like"}</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -301,7 +347,12 @@ export function PostCard({
           </div>
         )}
       </div>
-    </article>
+      </article>
+
+      {showLikes && (
+        <PostLikesModal postId={post.id} likeCount={likeCount} onClose={() => setShowLikes(false)} />
+      )}
+    </>
   );
 }
 

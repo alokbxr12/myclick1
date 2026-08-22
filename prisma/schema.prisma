@@ -27,10 +27,11 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  posts       Post[]
-  likes       Like[]
-  comments    Comment[]
-  resetTokens PasswordResetToken[]
+  posts        Post[]
+  likes        Like[]
+  comments     Comment[]
+  commentLikes CommentLike[]
+  resetTokens  PasswordResetToken[]
 
   // users this user follows
   following Follow[] @relation("Following")
@@ -105,8 +106,25 @@ model Comment {
   postId String
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
+  likes CommentLike[]
+
   @@index([postId])
   @@map("comments")
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+  @@map("comment_likes")
 }
 
 model PasswordResetToken {

@@ -56,6 +56,7 @@ The schema lives in `prisma/schema.prisma`. Running the migration below will cre
 | `follows` | follower → following relationships (who follows whom) |
 | `likes` | which user liked which post |
 | `comments` | comments left on a post |
+| `comment_likes` | which user liked which comment |
 | `password_reset_tokens` | short-lived password reset tokens |
 | `media` | uploaded photo and profile-picture bytes |
 
@@ -67,7 +68,7 @@ Once `.env` points at your local database, apply the migrations already included
 npx prisma migrate deploy
 ```
 
-This creates the seven tables above in your database. Run `npx prisma migrate dev --name <change-name>` when you later change `schema.prisma` during development.
+This creates the eight tables above in your database. Run `npx prisma migrate dev --name <change-name>` when you later change `schema.prisma` during development.
 
 ## 5. Run the app locally
 
@@ -87,7 +88,7 @@ Visit http://localhost:3000 — you'll land on `/login`. Click "Create one" to r
 - **Search** (`/search`) — find other users by username or name, and open their profile.
 - **Upload** (`/upload`) — pick a photo + caption, stored in local PostgreSQL.
 - **Profile** (`/profile/[username]`) — bio, photo grid, follower/following counts, and a Follow/Following button for other users.
-- Only the post's **author** can edit the caption or delete it. Anyone who is logged in can view profiles, like, and comment.
+- Only the post's **author** can edit the caption or delete it. Anyone who is logged in can view profiles, like posts and comments, open the post-liker list, and comment.
 
 ## Local database note
 
