@@ -1,0 +1,160 @@
+"use client";
+
+import { useState } from "react";
+import { signOut } from "next-auth/react";
+import { CloseIcon, TrashIcon } from "./Icons";
+
+const REASONS = [
+  "Taking a break from social media",
+  "Privacy concerns",
+  "Creating a new account",
+  "Too distracting",
+  "Other reason",
+];
+
+export function DeleteAccountModal({ onClose }: { onClose: () => void }) {
+  const [selectedReason, setSelectedReason] = useState(REASONS[0]);
+  const [customReason, setCustomReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deleted, setDeleted] = useState(false);
+
+  async function handleDelete() {
+    setLoading(true);
+    setError(null);
+
+    const finalReason =
+      selectedReason === "Other reason" && customReason.trim()
+        ? customReason.trim()
+        : selectedReason;
+
+    const res = await fetch("/api/users/me", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: finalReason }),
+    });
+
+    setLoading(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Failed to delete account");
+      return;
+    }
+
+    setDeleted(true);
+  }
+
+  function handleFinalGoodbye() {
+    signOut({ callbackUrl: "/login" });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 overflow-y-auto"
+      onClick={deleted ? handleFinalGoodbye : onClose}
+    >
+      <div
+        className="glass-panel w-full max-w-sm rounded-2xl shadow-2xl p-6 my-auto flex flex-col gap-4 text-white border border-white/10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {!deleted ? (
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h2 className="font-bold text-lg text-red-500 flex items-center gap-2">
+                <TrashIcon className="w-5 h-5" />
+                Delete Account
+              </h2>
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="text-lg leading-none rounded-full w-8 h-8 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <CloseIcon className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Warning Note */}
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200 leading-relaxed">
+              ⚠️ <strong>Warning:</strong> This action is permanent. All your photos, posts, comments, likes, and followers will be permanently deleted.
+            </div>
+
+            {/* Reason Options */}
+            <div className="flex flex-col gap-2.5">
+              <label className="text-xs font-semibold text-white">
+                Please tell us why you&apos;re leaving:
+              </label>
+              <div className="flex flex-col gap-2">
+                {REASONS.map((reason) => (
+                  <label
+                    key={reason}
+                    className="flex items-center gap-2.5 text-xs cursor-pointer text-white/80 hover:text-white transition-colors"
+                  >
+                    <input
+                      type="radio"
+                      name="deleteReason"
+                      value={reason}
+                      checked={selectedReason === reason}
+                      onChange={(e) => setSelectedReason(e.target.value)}
+                      className="accent-red-500 w-4 h-4"
+                    />
+                    {reason}
+                  </label>
+                ))}
+              </div>
+
+              {selectedReason === "Other reason" && (
+                <textarea
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  placeholder="Tell us more…"
+                  rows={2}
+                  className="w-full mt-1 rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs text-white placeholder:text-white/40 focus:ring-2 focus:ring-red-500 outline-none"
+                />
+              )}
+            </div>
+
+            {error && <p className="text-xs text-red-400 font-medium text-center">{error}</p>}
+
+            {/* Always-visible Action Buttons */}
+            <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={loading}
+                className="w-full rounded-xl bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold py-3.5 px-4 text-sm shadow-xl shadow-red-950/80 border border-red-400/40 transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <TrashIcon className="w-4 h-4" />
+                {loading ? "Deleting account…" : "Confirm & Delete My Account"}
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="w-full rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white/80 text-xs font-medium py-2.5 transition-colors"
+              >
+                Cancel & Keep My Account
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center text-center py-4 gap-3">
+            <span className="text-5xl animate-bounce">🥺</span>
+            <h2 className="text-xl font-bold tracking-tight text-white">We&apos;ll miss you!</h2>
+            <p className="text-sm text-white/80 leading-relaxed">
+              Your account has been successfully deleted. We&apos;re sad to see you go… please come back soon!
+            </p>
+            <button
+              onClick={handleFinalGoodbye}
+              className="w-full mt-3 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-500 text-white px-4 py-3 text-sm font-bold shadow-lg shadow-red-950/50"
+            >
+              Goodbye 🥺
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

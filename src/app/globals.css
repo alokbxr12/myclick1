@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/* App is always dark-themed — force the "dark:" variant on regardless of OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #05050a;
+  --foreground: #ededed;
+  --accent-1: #e5484d;
+  --accent-2: #9e1c24;
+  --accent-3: #200606;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #14141d, var(--background) 60%);
+}
+
+.app-feed-bg {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    radial-gradient(circle at 50% -20%, rgba(91, 21, 24, 0.24), transparent 45%),
+    #08090b;
+  background-size: 42px 42px, 42px 42px, auto, auto;
+}
+
+.auth-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.62'/%3E%3C/svg%3E");
+}
+
+@keyframes auth-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-enter {
+  animation: auth-enter 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-enter {
+    animation: none;
+  }
+}
+
+.glass-panel {
+  background: color-mix(in srgb, var(--background) 80%, transparent);
+  backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+/* Glossy sheen for badges/buttons/avatars: saturated gradient + soft glow + top-light highlight. */
+.glossy {
+  position: relative;
+  overflow: hidden;
+  background-image: linear-gradient(150deg, var(--accent-1), var(--accent-2) 55%, var(--accent-3));
+  box-shadow:
+    0 6px 20px -4px color-mix(in srgb, var(--accent-2) 55%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.glossy::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+
+@keyframes like-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.like-pop {
+  animation: like-pop 0.35s ease;
+}
+
+/* Always-visible, styled scrollbar for scrollable lists (modals, dropdowns, etc). */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--foreground) 35%, transparent) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--foreground) 35%, transparent);
+  border-radius: 4px;
+}

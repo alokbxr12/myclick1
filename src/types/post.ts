@@ -1,0 +1,28 @@
+export type PostAuthor = {
+  id: string;
+  username: string;
+  name: string | null;
+  avatarUrl: string | null;
+};
+
+export type Post = {
+  id: string;
+  caption: string | null;
+  imageUrl: string;
+  createdAt: string;
+  cameraModel: string | null;
+  focalLength: string | null;
+  aperture: string | null;
+  shutterSpeed: string | null;
+  iso: string | null;
+  author: PostAuthor;
+  _count: { likes: number; comments: number };
+  likedByMe: boolean;
+};
+
+export type Comment = {
+  id: string;
+  content: string;
+  createdAt: string;
+  user: PostAuthor;
+};
