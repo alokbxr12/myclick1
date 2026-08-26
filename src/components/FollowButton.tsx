@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function FollowButton({
   username,
@@ -20,8 +20,22 @@ export function FollowButton({
       method: following ? "DELETE" : "POST",
     });
     setBusy(false);
-    if (res.ok) setFollowing(!following);
+    if (res.ok) {
+      const nextFollowing = !following;
+      setFollowing(nextFollowing);
+      window.dispatchEvent(new CustomEvent("myclick:follow-change", { detail: { username, following: nextFollowing } }));
+    }
   }
+
+  useEffect(() => {
+    function syncFollowing(event: Event) {
+      const detail = (event as CustomEvent<{ username: string; following: boolean }>).detail;
+      if (detail?.username === username) setFollowing(detail.following);
+    }
+
+    window.addEventListener("myclick:follow-change", syncFollowing);
+    return () => window.removeEventListener("myclick:follow-change", syncFollowing);
+  }, [username]);
 
   return (
     <button

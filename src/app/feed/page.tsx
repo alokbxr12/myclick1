@@ -7,6 +7,7 @@ import { PostCard } from "@/components/PostCard";
 import { Avatar } from "@/components/Avatar";
 import { PhotographyTip } from "@/components/PhotographyTip";
 import { BrandMark } from "@/components/BrandMark";
+import { FollowButton } from "@/components/FollowButton";
 import { PeopleSuggestions, type SuggestedPerson } from "@/components/PeopleSuggestions";
 import { PlusSquareIcon, PolaroidCameraIcon, SearchIcon } from "@/components/Icons";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -16,7 +17,7 @@ type InspirationPost = {
   id: string;
   imageUrl: string;
   caption: string | null;
-  author: { username: string; name: string | null };
+  author: { id: string; username: string; name: string | null; isFollowing: boolean };
   _count: { likes: number; comments: number };
 };
 
@@ -259,14 +260,21 @@ function CommunityInspiration({ inspirationPosts, embedded = false }: { inspirat
       </div>
       <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
         {inspirationPosts.map((post) => (
-          <Link key={post.id} href={`/p/${post.id}`} className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/[0.04]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={post.imageUrl} alt={post.caption ?? `Photograph by ${post.author.username}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent px-3 pb-3 pt-9">
-              <p className="truncate text-[10px] font-semibold text-white">@{post.author.username}</p>
+          <div key={post.id} className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/[0.04]">
+            <Link href={`/p/${post.id}`} aria-label={`Open photograph by ${post.author.username}`} className="absolute inset-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={post.imageUrl} alt={post.caption ?? `Photograph by ${post.author.username}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            </Link>
+            <div className="absolute right-2 top-2 z-10">
+              <FollowButton compact initialFollowing={post.author.isFollowing} username={post.author.username} />
+            </div>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/25 to-transparent px-3 pb-3 pt-9">
+              <Link href={`/profile/${post.author.username}`} className="pointer-events-auto block min-w-0">
+                <p className="truncate text-[10px] font-semibold text-white transition hover:text-red-200">@{post.author.username}</p>
+              </Link>
               <p className="mt-0.5 text-[9px] text-white/55">{post._count.likes} {post._count.likes === 1 ? "appreciation" : "appreciations"}</p>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
     </section>

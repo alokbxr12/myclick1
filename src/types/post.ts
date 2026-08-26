@@ -3,6 +3,7 @@ export type PostAuthor = {
   username: string;
   name: string | null;
   avatarUrl: string | null;
+  isFollowing: boolean;
 };
 
 export type Post = {

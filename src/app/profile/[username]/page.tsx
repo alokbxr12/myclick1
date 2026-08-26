@@ -53,7 +53,7 @@ export default async function ProfilePage({
   const posts = user.posts.map(({ likes, ...post }) => ({
     ...post,
     createdAt: post.createdAt.toISOString(),
-    author: { id: user.id, username: user.username, name: user.name, avatarUrl: user.avatarUrl },
+    author: { id: user.id, username: user.username, name: user.name, avatarUrl: user.avatarUrl, isFollowing },
     likedByMe: likes.length > 0,
   }));
 

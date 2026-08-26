@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "./Avatar";
 import { CloseIcon, HeartIcon } from "./Icons";
+import { FollowButton } from "./FollowButton";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 type Liker = {
@@ -11,6 +12,8 @@ type Liker = {
   username: string;
   name: string | null;
   avatarUrl: string | null;
+  isFollowing: boolean;
+  isMe: boolean;
 };
 
 export function PostLikesModal({
@@ -98,21 +101,22 @@ export function PostLikesModal({
           )}
 
           {users?.map((user) => (
-            <Link
+            <div
               key={user.id}
-              href={`/profile/${user.username}`}
-              onClick={onClose}
               className="flex items-center gap-3 rounded-2xl px-3 py-3 transition hover:bg-white/[0.045]"
             >
-              <Avatar src={user.avatarUrl} username={user.username} size={42} />
-              <div className="min-w-0 flex-1">
-                <p className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-white/88">
-                  <span className="truncate">{user.username}</span>
-                  <VerifiedBadge className="h-3.5 w-3.5" />
-                </p>
-                {user.name && <p className="mt-0.5 truncate text-xs text-white/36">{user.name}</p>}
-              </div>
-            </Link>
+              <Link href={`/profile/${user.username}`} onClick={onClose} className="flex min-w-0 flex-1 items-center gap-3">
+                <Avatar src={user.avatarUrl} username={user.username} size={42} />
+                <div className="min-w-0 flex-1">
+                  <p className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-white/88">
+                    <span className="truncate">{user.username}</span>
+                    <VerifiedBadge className="h-3.5 w-3.5" />
+                  </p>
+                  {user.name && <p className="mt-0.5 truncate text-xs text-white/36">{user.name}</p>}
+                </div>
+              </Link>
+              {!user.isMe && <FollowButton compact username={user.username} initialFollowing={user.isFollowing} />}
+            </div>
           ))}
         </div>
       </div>

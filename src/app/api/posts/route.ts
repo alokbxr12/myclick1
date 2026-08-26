@@ -34,7 +34,8 @@ export async function GET() {
     where: { followerId: userId },
     select: { followingId: true },
   });
-  const authorIds = [userId, ...following.map((f) => f.followingId)];
+  const followingIds = new Set(following.map((follow) => follow.followingId));
+  const authorIds = [userId, ...followingIds];
 
   const posts = await prisma.post.findMany({
     where: { authorId: { in: authorIds } },
@@ -47,6 +48,10 @@ export async function GET() {
 
   const shaped = posts.map(({ likes, ...post }) => ({
     ...post,
+    author: {
+      ...post.author,
+      isFollowing: followingIds.has(post.author.id),
+    },
     likedByMe: likes.length > 0,
   }));
 
@@ -105,5 +110,5 @@ export async function POST(request: Request) {
     select: POST_SELECT,
   });
 
-  return NextResponse.json({ post: { ...post, likedByMe: false } }, { status: 201 });
+  return NextResponse.json({ post: { ...post, author: { ...post.author, isFollowing: false }, likedByMe: false } }, { status: 201 });
 }

@@ -10,22 +10,28 @@ export async function GET(_request: Request, { params }: RouteParams) {
   const session = await auth();
   const userId = session!.user.id;
 
-  const comments = await prisma.comment.findMany({
-    where: { postId },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      content: true,
-      createdAt: true,
-      user: { select: { id: true, username: true, name: true, avatarUrl: true } },
-      _count: { select: { likes: true } },
-      likes: { where: { userId }, select: { id: true } },
-    },
-  });
+  const [comments, following] = await Promise.all([
+    prisma.comment.findMany({
+      where: { postId },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        user: { select: { id: true, username: true, name: true, avatarUrl: true } },
+        _count: { select: { likes: true } },
+        likes: { where: { userId }, select: { id: true } },
+      },
+    }),
+    prisma.follow.findMany({ where: { followerId: userId }, select: { followingId: true } }),
+  ]);
+
+  const followingIds = new Set(following.map((follow) => follow.followingId));
 
   return NextResponse.json({
     comments: comments.map(({ likes, ...comment }) => ({
       ...comment,
+      user: { ...comment.user, isFollowing: followingIds.has(comment.user.id) },
       likedByMe: likes.length > 0,
     })),
   });
@@ -62,5 +68,5 @@ export async function POST(request: Request, { params }: RouteParams) {
     },
   });
 
-  return NextResponse.json({ comment: { ...comment, likedByMe: false } }, { status: 201 });
+  return NextResponse.json({ comment: { ...comment, user: { ...comment.user, isFollowing: false }, likedByMe: false } }, { status: 201 });
 }

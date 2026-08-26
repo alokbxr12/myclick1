@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
+import { FollowButton } from "./FollowButton";
 import { HeartIcon, CommentIcon, ShareIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { PostLikesModal } from "./PostLikesModal";
@@ -161,7 +162,10 @@ export function PostCard({
           </div>
         </Link>
 
-        {showOwnerMenu && isOwner && (
+        <div className="flex shrink-0 items-center gap-2">
+          {!isOwner && <FollowButton compact initialFollowing={post.author.isFollowing} username={post.author.username} />}
+
+          {showOwnerMenu && isOwner && (
           <div className="relative">
             <button
               onClick={() => setMenuOpen((open) => !open)}
@@ -191,7 +195,8 @@ export function PostCard({
               </>
             )}
           </div>
-        )}
+          )}
+        </div>
       </header>
 
       <div className="relative flex min-h-[260px] w-full items-center justify-center overflow-hidden bg-black" onDoubleClick={toggleLike}>
@@ -306,11 +311,14 @@ export function PostCard({
                 <div key={comment.id} className="flex items-start gap-3">
                   <Avatar src={comment.user.avatarUrl} username={comment.user.username} size={28} />
                   <div className="min-w-0 flex-1">
-                    <p className="break-words text-xs leading-5 text-white/58">
-                      <Link href={`/profile/${comment.user.username}`} className="mr-1.5 inline-flex items-center gap-1 font-semibold text-white/85 hover:text-red-300">
+                    <div className="mb-0.5 flex flex-wrap items-center gap-2">
+                      <Link href={`/profile/${comment.user.username}`} className="inline-flex items-center gap-1 text-xs font-semibold text-white/85 hover:text-red-300">
                         <span>{comment.user.username}</span>
                         <VerifiedBadge className="h-3 w-3" />
                       </Link>
+                      {session?.user?.id !== comment.user.id && <FollowButton compact username={comment.user.username} initialFollowing={comment.user.isFollowing} />}
+                    </div>
+                    <p className="break-words text-xs leading-5 text-white/58">
                       {comment.content}
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-white/28">

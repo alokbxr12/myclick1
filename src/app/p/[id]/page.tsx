@@ -37,9 +37,14 @@ export default async function PostPage({
   if (!post) notFound();
 
   const { likes, ...rest } = post;
+  const isFollowing = rest.author.id !== userId && (await prisma.follow.findUnique({
+    where: { followerId_followingId: { followerId: userId, followingId: rest.author.id } },
+    select: { followerId: true },
+  })) !== null;
   const shaped = {
     ...rest,
     createdAt: rest.createdAt.toISOString(),
+    author: { ...rest.author, isFollowing },
     likedByMe: likes.length > 0,
   };
 

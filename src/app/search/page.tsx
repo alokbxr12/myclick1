@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
+import { FollowButton } from "@/components/FollowButton";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 type UserResult = {
@@ -10,6 +11,7 @@ type UserResult = {
   username: string;
   name: string | null;
   avatarUrl: string | null;
+  isFollowing: boolean;
 };
 
 export default function SearchPage() {
@@ -57,20 +59,19 @@ export default function SearchPage() {
 
       <div className="flex flex-col gap-3">
         {results.map((user) => (
-          <Link
-            key={user.id}
-            href={`/profile/${user.username}`}
-            className="flex items-center gap-3 rounded-lg border border-black/10 dark:border-white/10 px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5"
-          >
-            <Avatar src={user.avatarUrl} username={user.username} size={40} />
-            <div className="min-w-0">
-              <p className="flex min-w-0 items-center gap-1 text-sm font-medium">
-                <span className="truncate">{user.username}</span>
-                <VerifiedBadge className="h-3.5 w-3.5" />
-              </p>
-              {user.name && <p className="text-xs text-black/60 dark:text-white/60">{user.name}</p>}
-            </div>
-          </Link>
+          <div key={user.id} className="flex items-center gap-3 rounded-lg border border-black/10 px-3 py-2 dark:border-white/10">
+            <Link href={`/profile/${user.username}`} className="flex min-w-0 flex-1 items-center gap-3 hover:text-red-300">
+              <Avatar src={user.avatarUrl} username={user.username} size={40} />
+              <div className="min-w-0">
+                <p className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                  <span className="truncate">{user.username}</span>
+                  <VerifiedBadge className="h-3.5 w-3.5" />
+                </p>
+                {user.name && <p className="text-xs text-black/60 dark:text-white/60">{user.name}</p>}
+              </div>
+            </Link>
+            <FollowButton compact username={user.username} initialFollowing={user.isFollowing} />
+          </div>
         ))}
       </div>
 

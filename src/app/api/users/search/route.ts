@@ -14,17 +14,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ users: [] });
   }
 
-  const users = await prisma.user.findMany({
-    where: {
-      id: { not: currentUserId },
-      OR: [
-        { username: { contains: q, mode: "insensitive" } },
-        { name: { contains: q, mode: "insensitive" } },
-      ],
-    },
-    select: { id: true, username: true, name: true, avatarUrl: true },
-    take: 20,
-  });
+  const [users, following] = await Promise.all([
+    prisma.user.findMany({
+      where: {
+        id: { not: currentUserId },
+        OR: [
+          { username: { contains: q, mode: "insensitive" } },
+          { name: { contains: q, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true, username: true, name: true, avatarUrl: true },
+      take: 20,
+    }),
+    prisma.follow.findMany({ where: { followerId: currentUserId }, select: { followingId: true } }),
+  ]);
 
-  return NextResponse.json({ users });
+  const followingIds = new Set(following.map((follow) => follow.followingId));
+
+  return NextResponse.json({ users: users.map((user) => ({ ...user, isFollowing: followingIds.has(user.id) })) });
 }

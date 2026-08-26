@@ -35,7 +35,7 @@ export async function GET() {
         id: true,
         imageUrl: true,
         caption: true,
-        author: { select: { username: true, name: true } },
+        author: { select: { id: true, username: true, name: true } },
         _count: { select: { likes: true, comments: true } },
       },
     }),
@@ -55,6 +55,10 @@ export async function GET() {
     .slice(0, 3);
 
   const inspirationPosts = photoCandidates
+    .map((post) => ({
+      ...post,
+      author: { ...post.author, isFollowing: followingIds.has(post.author.id) },
+    }))
     .sort((first, second) => {
       const firstScore = first._count.likes * 3 + first._count.comments;
       const secondScore = second._count.likes * 3 + second._count.comments;
