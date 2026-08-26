@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Avatar } from "./Avatar";
-import { HomeIcon, SearchIcon, PlusSquareIcon, LogOutIcon, PolaroidCameraIcon } from "./Icons";
+import { HomeIcon, SearchIcon, PlusSquareIcon, LogOutIcon } from "./Icons";
+import { BrandMark } from "./BrandMark";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 const navItems = [
@@ -25,18 +26,19 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-[#08090b]/88 shadow-[0_12px_40px_-28px_rgba(0,0,0,0.95)] backdrop-blur-2xl">
+      <header className="relative sticky top-0 z-40 border-b border-white/[0.07] bg-[#08090b]/88 shadow-[0_12px_40px_-28px_rgba(0,0,0,0.95)] backdrop-blur-2xl before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-red-400/45 before:to-transparent">
         <nav className="mx-auto flex h-[72px] max-w-[1180px] items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/feed" className="group flex items-center gap-3" aria-label="MyClick feed">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.055] shadow-inner transition group-hover:border-red-500/35 group-hover:bg-red-500/10">
-              <PolaroidCameraIcon className="h-[18px] w-[18px] text-red-400" />
+          <Link href="/feed" className="group flex items-center gap-2.5" aria-label="MyClick feed">
+            <div className="relative flex h-10 w-11 items-center justify-center">
+              <div className="absolute inset-0 rounded-2xl bg-red-500/10 blur-xl opacity-0 transition group-hover:opacity-100" />
+              <BrandMark className="relative h-9 w-11 transition duration-300 group-hover:-translate-y-0.5 group-hover:scale-[1.04]" />
             </div>
             <div>
-              <p className="text-[17px] font-bold leading-none tracking-[-0.04em] text-white">
-                My<span className="text-red-400">Click</span>
+              <p className="text-[18px] font-bold leading-none tracking-[-0.045em] text-white">
+                My<span className="bg-gradient-to-r from-[#ff9a64] via-[#fb5d68] to-[#ee4768] bg-clip-text text-transparent">Click</span>
               </p>
-              <p className="mt-1 hidden text-[8px] font-semibold uppercase tracking-[0.2em] text-white/30 sm:block">
-                Photographer community
+              <p className="mt-1 hidden text-[8px] font-semibold uppercase tracking-[0.22em] text-white/32 sm:block">
+                Capture · Share · Inspire
               </p>
             </div>
           </Link>

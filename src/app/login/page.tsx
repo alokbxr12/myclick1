@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PhotoCollageBackground } from "@/components/PhotoCollageBackground";
-import { PolaroidCameraIcon } from "@/components/Icons";
+import { BrandMark } from "@/components/BrandMark";
 import { TermsModal } from "@/components/TermsModal";
 
 export default function LoginPage() {
@@ -261,14 +261,15 @@ function LoginForm() {
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="inline-flex items-center gap-3">
-      <div className={`${compact ? "h-10 w-10 rounded-xl" : "h-11 w-11 rounded-[0.9rem]"} flex items-center justify-center border border-white/15 bg-black/30 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8)] backdrop-blur-md`}>
-        <PolaroidCameraIcon className="h-5 w-5 text-red-400" />
+      <div className={`${compact ? "h-10 w-11" : "h-11 w-12"} relative flex items-center justify-center`}>
+        <div className="absolute inset-0 rounded-2xl bg-red-500/10 blur-xl" />
+        <BrandMark className="relative h-9 w-11" />
       </div>
       <div>
         <p className="text-xl font-bold tracking-[-0.04em] text-white">
-          My<span className="text-red-400">Click</span>
+          My<span className="bg-gradient-to-r from-[#ff9a64] via-[#fb5d68] to-[#ee4768] bg-clip-text text-transparent">Click</span>
         </p>
-        {!compact && <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/42">Photographer community</p>}
+        {!compact && <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/42">Capture · Share · Inspire</p>}
       </div>
     </div>
   );

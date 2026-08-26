@@ -29,9 +29,89 @@ body {
   background:
     linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-    radial-gradient(circle at 50% -20%, rgba(91, 21, 24, 0.24), transparent 45%),
+    radial-gradient(circle at 50% -20%, rgba(138, 38, 42, 0.3), transparent 45%),
     #08090b;
   background-size: 42px 42px, 42px 42px, auto, auto;
+}
+
+.feed-hero {
+  position: relative;
+  background:
+    linear-gradient(112deg, rgba(16, 17, 23, 0.98) 0%, rgba(17, 16, 21, 0.93) 48%, rgba(48, 19, 26, 0.8) 100%),
+    radial-gradient(circle at 75% 16%, rgba(241, 91, 101, 0.2), transparent 28%);
+}
+
+.feed-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.48;
+  background:
+    linear-gradient(120deg, transparent 0 48%, rgba(255, 255, 255, 0.04) 48.15% 48.4%, transparent 48.55%),
+    radial-gradient(circle at 78% 76%, rgba(255, 161, 102, 0.16), transparent 24%);
+  pointer-events: none;
+}
+
+@keyframes feed-hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes feed-title-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 0 rgba(248, 113, 113, 0));
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: drop-shadow(0 5px 13px rgba(248, 113, 113, 0.18));
+  }
+}
+
+@keyframes feed-mark-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.feed-hero-kicker,
+.feed-hero-title,
+.feed-hero-copy,
+.feed-hero-actions {
+  animation: feed-hero-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.feed-hero-title {
+  animation-delay: 70ms;
+}
+
+.feed-hero-copy {
+  animation-delay: 140ms;
+}
+
+.feed-hero-actions {
+  animation-delay: 210ms;
+}
+
+.feed-title-shimmer {
+  width: fit-content;
+  background: linear-gradient(100deg, #ff9a64 0%, #fb5d68 42%, #ffbcc4 58%, #fb5d68 72%, #ff9a64 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: feed-title-shimmer 8s ease-in-out infinite;
+}
+
+.feed-hero-mark > :nth-child(3) {
+  animation: feed-mark-orbit 18s linear infinite;
 }
 
 .auth-grain {
@@ -54,7 +134,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .auth-enter {
+  .auth-enter,
+  .feed-hero-kicker,
+  .feed-hero-title,
+  .feed-hero-copy,
+  .feed-hero-actions,
+  .feed-title-shimmer,
+  .feed-hero-mark > :nth-child(3) {
     animation: none;
   }
 }
