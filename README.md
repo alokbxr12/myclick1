@@ -59,6 +59,7 @@ The schema lives in `prisma/schema.prisma`. Running the migration below will cre
 | `comment_likes` | which user liked which comment |
 | `password_reset_tokens` | short-lived password reset tokens |
 | `media` | uploaded photo and profile-picture bytes |
+| `featured_photo_days` / `featured_photos` | daily snapshots of yesterday's three most-liked uploads |
 
 ## 4. Create the tables
 
@@ -84,7 +85,7 @@ Visit http://localhost:3000 — you'll land on `/login`. Click "Create one" to r
 ## How it works
 - **Register/Login** (`/register`, `/login`) — sign in with email or username + password, hashed with bcrypt.
 - **Forgot password** (`/forgot-password`, `/reset-password/[token]`) — emails a time-limited reset link via Gmail SMTP.
-- **Feed** (`/feed`) — shows posts from yourself and everyone you follow, newest first.
+- **Feed** (`/feed`) — shows posts from yourself and everyone you follow, newest first, plus a daily Featured Photos row selected from yesterday's top-liked uploads.
 - **Search** (`/search`) — find other users by username or name, and open their profile.
 - **Upload** (`/upload`) — pick a photo + caption, stored in local PostgreSQL.
 - **Profile** (`/profile/[username]`) — bio, photo grid, follower/following counts, and a Follow/Following button for other users.
@@ -109,6 +110,10 @@ DIRECT_URL="postgresql://..."
 
 # Generate a new production value with: openssl rand -base64 32
 AUTH_SECRET="..."
+
+# Required to authenticate Vercel's daily Featured Photos cron call.
+# Generate with: openssl rand -base64 32
+CRON_SECRET="..."
 
 # Optional, for password-reset email
 GMAIL_USER=""

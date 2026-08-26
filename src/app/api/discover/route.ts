@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getDailyFeaturedPhotos } from "@/lib/daily-featured-photos";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -10,11 +11,13 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [following, people, photoCandidates] = await Promise.all([
-    prisma.follow.findMany({
-      where: { followerId: currentUserId },
-      select: { followingId: true },
-    }),
+  const following = await prisma.follow.findMany({
+    where: { followerId: currentUserId },
+    select: { followingId: true },
+  });
+  const followingIds = new Set(following.map((relationship) => relationship.followingId));
+
+  const [people, photoCandidates, featuredPhotos] = await Promise.all([
     prisma.user.findMany({
       where: { id: { not: currentUserId } },
       select: {
@@ -39,9 +42,8 @@ export async function GET() {
         _count: { select: { likes: true, comments: true } },
       },
     }),
+    getDailyFeaturedPhotos(),
   ]);
-
-  const followingIds = new Set(following.map((relationship) => relationship.followingId));
 
   const suggestedPeople = people
     .map((person) => ({ ...person, isFollowing: followingIds.has(person.id) }))
@@ -66,5 +68,16 @@ export async function GET() {
     })
     .slice(0, 3);
 
-  return NextResponse.json({ suggestedPeople, inspirationPosts });
+  return NextResponse.json({
+    suggestedPeople,
+    inspirationPosts,
+    featuredPhotos: featuredPhotos.map((post) => ({
+      ...post,
+      author: {
+        ...post.author,
+        isFollowing: followingIds.has(post.author.id),
+        isOwn: post.author.id === currentUserId,
+      },
+    })),
+  });
 }

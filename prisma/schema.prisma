@@ -76,6 +76,7 @@ model Post {
   likes    Like[]
   comments Comment[]
   images   PostImage[]
+  featuredAppearances FeaturedPhoto[]
 
   @@index([authorId])
   @@map("posts")
@@ -92,6 +93,35 @@ model PostImage {
   @@unique([postId, sortOrder])
   @@index([postId])
   @@map("post_images")
+}
+
+model FeaturedPhotoDay {
+  id             String   @id @default(cuid())
+  dateKey        String   @unique
+  sourceStartsAt DateTime
+  sourceEndsAt   DateTime
+  createdAt      DateTime @default(now())
+
+  photos FeaturedPhoto[]
+
+  @@map("featured_photo_days")
+}
+
+model FeaturedPhoto {
+  id               String   @id @default(cuid())
+  rank             Int
+  likesAtSelection Int
+
+  dayId String
+  day   FeaturedPhotoDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([dayId, rank])
+  @@unique([dayId, postId])
+  @@index([postId])
+  @@map("featured_photos")
 }
 
 model Like {
