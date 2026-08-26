@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { PostCard } from "@/components/PostCard";
 import { Avatar } from "@/components/Avatar";
+import { PhotographyTip } from "@/components/PhotographyTip";
 import { PlusSquareIcon, PolaroidCameraIcon, SearchIcon } from "@/components/Icons";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import type { Post } from "@/types/post";
@@ -73,8 +74,11 @@ export default function FeedPage() {
 
           {!loading && !error && posts.length > 0 && (
             <div className="flex flex-col gap-8 sm:gap-10">
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} onDeleted={handleDeleted} showOwnerMenu />
+              {posts.map((post, index) => (
+                <div className="contents" key={post.id}>
+                  <PostCard post={post} onDeleted={handleDeleted} showOwnerMenu />
+                  {index === 1 && posts.length > 2 && <PhotographyTip />}
+                </div>
               ))}
             </div>
           )}

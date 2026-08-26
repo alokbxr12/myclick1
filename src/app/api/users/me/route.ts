@@ -3,7 +3,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedImage, deleteUploadedImage } from "@/lib/upload";
 
-// PATCH /api/users/me -> Update or delete profile picture
+const BIO_MAX_LENGTH = 160;
+
+// PATCH /api/users/me -> Update a bio or profile picture
 export async function PATCH(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -24,6 +26,20 @@ export async function PATCH(request: Request) {
   const formData = await request.formData();
   const deleteAvatar = formData.get("deleteAvatar");
   const avatarFile = formData.get("avatar");
+  const bio = formData.get("bio");
+  const hasBioUpdate = bio !== null;
+
+  if (hasBioUpdate && typeof bio !== "string") {
+    return NextResponse.json({ error: "Invalid bio" }, { status: 400 });
+  }
+
+  const normalizedBio = typeof bio === "string" ? bio.trim() : undefined;
+  if (normalizedBio && normalizedBio.length > BIO_MAX_LENGTH) {
+    return NextResponse.json(
+      { error: `Bio must be at most ${BIO_MAX_LENGTH} characters` },
+      { status: 400 }
+    );
+  }
 
   // Remove avatar
   if (deleteAvatar === "true") {
@@ -32,8 +48,11 @@ export async function PATCH(request: Request) {
     }
     const updated = await prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl: null },
-      select: { id: true, username: true, avatarUrl: true },
+      data: {
+        avatarUrl: null,
+        ...(hasBioUpdate ? { bio: normalizedBio || null } : {}),
+      },
+      select: { id: true, username: true, bio: true, avatarUrl: true },
     });
     return NextResponse.json({ user: updated });
   }
@@ -56,8 +75,21 @@ export async function PATCH(request: Request) {
 
     const updated = await prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl: newAvatarUrl },
-      select: { id: true, username: true, avatarUrl: true },
+      data: {
+        avatarUrl: newAvatarUrl,
+        ...(hasBioUpdate ? { bio: normalizedBio || null } : {}),
+      },
+      select: { id: true, username: true, bio: true, avatarUrl: true },
+    });
+
+    return NextResponse.json({ user: updated });
+  }
+
+  if (hasBioUpdate) {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { bio: normalizedBio || null },
+      select: { id: true, username: true, bio: true, avatarUrl: true },
     });
 
     return NextResponse.json({ user: updated });

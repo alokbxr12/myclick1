@@ -5,8 +5,9 @@ import { Avatar } from "./Avatar";
 import { FollowButton } from "./FollowButton";
 import { ProfileStats } from "./ProfileStats";
 import { EditAvatarModal } from "./EditAvatarModal";
+import { EditBioModal } from "./EditBioModal";
 import { DeleteAccountModal } from "./DeleteAccountModal";
-import { CameraEditIcon, TrashIcon } from "./Icons";
+import { CameraEditIcon, PencilIcon, TrashIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 export function ProfileHeader({
@@ -25,6 +26,7 @@ export function ProfileHeader({
   isFollowing: boolean;
 }) {
   const [showEditAvatar, setShowEditAvatar] = useState(false);
+  const [showEditBio, setShowEditBio] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   return (
@@ -59,6 +61,13 @@ export function ProfileHeader({
           {isMe && (
             <div className="flex flex-wrap items-center gap-2">
               <button
+                onClick={() => setShowEditBio(true)}
+                className="rounded-lg border border-black/15 px-3 py-1 text-xs font-medium transition-colors hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10 flex items-center gap-1.5"
+              >
+                <PencilIcon className="w-3.5 h-3.5" />
+                <span>Edit bio</span>
+              </button>
+              <button
                 onClick={() => setShowEditAvatar(true)}
                 className="rounded-lg border border-black/15 dark:border-white/20 px-3 py-1 text-xs font-medium hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center gap-1.5"
               >
@@ -85,7 +94,7 @@ export function ProfileHeader({
         />
 
         {user.name && <p className="mt-2 truncate text-sm font-medium">{user.name}</p>}
-        {user.bio && <p className="mt-0.5 break-words text-sm text-black/70 dark:text-white/70">{user.bio}</p>}
+        {user.bio && <p className="mt-0.5 whitespace-pre-line break-words text-sm text-black/70 dark:text-white/70">{user.bio}</p>}
       </div>
 
       {showEditAvatar && (
@@ -95,6 +104,8 @@ export function ProfileHeader({
           onClose={() => setShowEditAvatar(false)}
         />
       )}
+
+      {showEditBio && <EditBioModal currentBio={user.bio} onClose={() => setShowEditBio(false)} />}
 
       {showDeleteAccount && (
         <DeleteAccountModal onClose={() => setShowDeleteAccount(false)} />
