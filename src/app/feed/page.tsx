@@ -122,6 +122,8 @@ export default function FeedPage() {
             </div>
           )}
 
+          {!loading && !error && posts.length > 0 && <CommunityInspiration inspirationPosts={inspirationPosts} />}
+
           {!loading && !error && suggestedPeople.length > 0 && (
             <PeopleSuggestions people={suggestedPeople} className="mt-8 xl:hidden" />
           )}
@@ -233,29 +235,40 @@ function EmptyFeed({ inspirationPosts }: { inspirationPosts: InspirationPost[] }
         </div>
       </div>
 
-      {inspirationPosts.length > 0 && (
-        <section aria-labelledby="community-inspiration-title" className="border-t border-white/[0.065] px-4 pb-5 pt-5 sm:px-5 sm:pb-6">
-          <div className="mb-4 flex items-end justify-between gap-4 px-1">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">Made by the community</p>
-              <h3 id="community-inspiration-title" className="mt-1 text-base font-semibold tracking-[-0.025em] text-white">A little inspiration to begin</h3>
-            </div>
-            <span className="hidden text-[11px] text-white/34 sm:block">Open a frame to see the full story</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-            {inspirationPosts.map((post) => (
-              <Link key={post.id} href={`/p/${post.id}`} className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/[0.04]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={post.imageUrl} alt={post.caption ?? `Photograph by ${post.author.username}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent px-3 pb-3 pt-9">
-                  <p className="truncate text-[10px] font-semibold text-white">@{post.author.username}</p>
-                  <p className="mt-0.5 text-[9px] text-white/55">{post._count.likes} {post._count.likes === 1 ? "appreciation" : "appreciations"}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      <CommunityInspiration inspirationPosts={inspirationPosts} embedded />
     </div>
+  );
+}
+
+function CommunityInspiration({ inspirationPosts, embedded = false }: { inspirationPosts: InspirationPost[]; embedded?: boolean }) {
+  if (inspirationPosts.length === 0) return null;
+
+  return (
+    <section
+      aria-labelledby="community-inspiration-title"
+      className={embedded
+        ? "border-t border-white/[0.065] px-4 pb-5 pt-5 sm:px-5 sm:pb-6"
+        : "overflow-hidden rounded-[2rem] border border-white/[0.075] bg-[#101014]/88 px-4 pb-5 pt-5 shadow-[0_28px_80px_-52px_rgba(0,0,0,0.98)] sm:px-5 sm:pb-6"}
+    >
+      <div className="mb-4 flex items-end justify-between gap-4 px-1">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">Made by the community</p>
+          <h3 id="community-inspiration-title" className="mt-1 text-base font-semibold tracking-[-0.025em] text-white">A little inspiration to begin</h3>
+        </div>
+        <span className="hidden text-[11px] text-white/34 sm:block">Open a frame to see the full story</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+        {inspirationPosts.map((post) => (
+          <Link key={post.id} href={`/p/${post.id}`} className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/[0.04]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={post.imageUrl} alt={post.caption ?? `Photograph by ${post.author.username}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent px-3 pb-3 pt-9">
+              <p className="truncate text-[10px] font-semibold text-white">@{post.author.username}</p>
+              <p className="mt-0.5 text-[9px] text-white/55">{post._count.likes} {post._count.likes === 1 ? "appreciation" : "appreciations"}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
