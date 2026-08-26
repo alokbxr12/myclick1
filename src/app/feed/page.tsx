@@ -299,17 +299,16 @@ function CommunityInspiration({ inspirationPosts, embedded = false }: { inspirat
 function FeaturedPhotos({ posts }: { posts: FeaturedPost[] }) {
   return (
     <section aria-labelledby="featured-photos-title" className="mb-8 overflow-hidden rounded-[2rem] border border-amber-200/[0.12] bg-[radial-gradient(circle_at_88%_0%,rgba(251,146,60,0.16),transparent_38%),linear-gradient(140deg,rgba(120,53,15,0.2),rgba(16,16,20,0.94)_48%,rgba(17,17,21,0.98))] px-4 pb-4 pt-5 shadow-[0_28px_80px_-54px_rgba(251,146,60,0.82)] sm:mb-10 sm:px-5 sm:pb-5 sm:pt-6">
-      <div className="mb-4 flex items-end justify-between gap-4 px-1 sm:mb-5">
+      <div className="mb-4 px-1 sm:mb-5">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-200/85">Featured photos</p>
-          <h2 id="featured-photos-title" className="mt-1 text-lg font-semibold tracking-[-0.035em] text-white">Yesterday&apos;s most-loved frames</h2>
+          <h2 id="featured-photos-title" className="mt-1 whitespace-nowrap text-[17px] font-semibold leading-6 tracking-[-0.035em] text-white sm:text-lg">Yesterday&apos;s most-loved frames</h2>
         </div>
-        <p className="max-w-28 text-right text-[10px] leading-4 text-white/42 sm:max-w-none sm:text-[11px]">Selected at midnight · here for today</p>
       </div>
 
       <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
         {posts.map((post) => (
-          <article key={post.id} className="group relative aspect-[3/4] overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04] shadow-[0_18px_44px_-30px_rgba(0,0,0,0.95)]">
+          <article key={post.id} className="featured-photo-card group relative aspect-[3/4] overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04] shadow-[0_18px_44px_-30px_rgba(0,0,0,0.95)]">
             <Link href={`/p/${post.id}`} aria-label={`Open featured photograph by ${post.author.username}`} className="absolute inset-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={post.imageUrl} alt={post.caption ?? `Featured photograph by ${post.author.username}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
