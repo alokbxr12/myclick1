@@ -14,6 +14,7 @@ export type PostImage = {
 
 export type Post = {
   id: string;
+  feedItemId?: string;
   caption: string | null;
   imageUrl: string;
   createdAt: string;
@@ -26,6 +27,8 @@ export type Post = {
   images: PostImage[];
   _count: { likes: number; comments: number };
   likedByMe: boolean;
+  repostedByMe?: boolean;
+  repostedBy?: { id: string; username: string; name: string | null; avatarUrl: string | null } | null;
 };
 
 export type Comment = {

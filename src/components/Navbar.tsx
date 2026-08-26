@@ -3,19 +3,49 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useEffect, useState } from "react";
 import { Avatar } from "./Avatar";
-import { HomeIcon, SearchIcon, PlusSquareIcon, LogOutIcon } from "./Icons";
+import { BellIcon, CompassIcon, HomeIcon, LogOutIcon, PlusIcon, PlusSquareIcon, SearchIcon, UserProfileIcon } from "./Icons";
 import { BrandMark } from "./BrandMark";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 const navItems = [
   { href: "/feed", label: "Feed", icon: HomeIcon },
   { href: "/search", label: "Discover", icon: SearchIcon },
+  { href: "/activity", label: "Activity", icon: BellIcon },
 ];
 
 export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+
+    let active = true;
+    const loadUnreadCount = async () => {
+      try {
+        const response = await fetch("/api/activity?summary=1", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (active) setUnreadCount(data.unreadCount ?? 0);
+      } catch {
+        // Navigation remains useful if the notification check is temporarily unavailable.
+      }
+    };
+
+    const handleActivitySeen = () => setUnreadCount(0);
+    void loadUnreadCount();
+    const interval = window.setInterval(() => void loadUnreadCount(), 60_000);
+    window.addEventListener("myclick:activity-seen", handleActivitySeen);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("myclick:activity-seen", handleActivitySeen);
+    };
+  }, [status]);
 
   if (status !== "authenticated") return null;
   if (["/login", "/register", "/forgot-password"].includes(pathname)) return null;
@@ -44,20 +74,24 @@ export function Navbar() {
           </Link>
 
           <div className="hidden items-center rounded-xl border border-white/[0.07] bg-white/[0.025] p-1 md:flex">
-            {navItems.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition ${
-                  isActive(href)
-                    ? "bg-white/[0.09] text-white shadow-sm"
-                    : "text-white/45 hover:bg-white/[0.05] hover:text-white/80"
-                }`}
-              >
-                <Icon className="h-[17px] w-[17px]" />
-                {label}
-              </Link>
-            ))}
+            {navItems.map(({ href, label, icon: Icon }) => {
+              const badgeCount = href === "/activity" ? unreadCount : 0;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`relative flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition ${
+                    isActive(href)
+                      ? "bg-white/[0.09] text-white shadow-sm"
+                      : "text-white/45 hover:bg-white/[0.05] hover:text-white/80"
+                  }`}
+                >
+                  <Icon className="h-[17px] w-[17px]" />
+                  {label}
+                  {badgeCount > 0 && <NotificationBadge count={badgeCount} />}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -95,18 +129,21 @@ export function Navbar() {
         </nav>
       </header>
 
-      <nav className="fixed inset-x-3 bottom-3 z-50 grid h-[66px] grid-cols-4 rounded-[1.35rem] border border-white/10 bg-[#101014]/92 px-2 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.95)] backdrop-blur-2xl md:hidden" aria-label="Mobile navigation">
+      <nav className="fixed inset-x-3 bottom-3 z-50 grid h-[72px] grid-cols-5 rounded-[1.55rem] border border-white/10 bg-[#101014]/95 px-1 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.95)] backdrop-blur-2xl md:hidden" aria-label="Mobile navigation">
         <MobileNavLink href="/feed" label="Feed" active={isActive("/feed")}>
-          <HomeIcon className="h-5 w-5" />
+          <HomeIcon filled={isActive("/feed")} className="h-5 w-5" />
         </MobileNavLink>
         <MobileNavLink href="/search" label="Discover" active={isActive("/search")}>
-          <SearchIcon className="h-5 w-5" />
+          <CompassIcon className="h-5 w-5" />
         </MobileNavLink>
-        <MobileNavLink href="/upload" label="Publish" active={isActive("/upload")} featured>
-          <PlusSquareIcon className="h-5 w-5" />
+        <MobileNavLink href="/upload" label="Create" active={isActive("/upload")} featured>
+          <PlusIcon className="h-7 w-7" />
+        </MobileNavLink>
+        <MobileNavLink href="/activity" label="Activity" active={isActive("/activity")} badgeCount={unreadCount}>
+          <BellIcon className="h-5 w-5" />
         </MobileNavLink>
         <MobileNavLink href={profileHref} label="Profile" active={isActive(profileHref)}>
-          <Avatar src={session.user.avatarUrl} username={session.user.username} size={22} className="ring-0" />
+          <UserProfileIcon className="h-5 w-5" />
         </MobileNavLink>
       </nav>
     </>
@@ -118,26 +155,37 @@ function MobileNavLink({
   label,
   active,
   featured = false,
+  badgeCount = 0,
   children,
 }: {
   href: string;
   label: string;
   active: boolean;
   featured?: boolean;
+  badgeCount?: number;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className={`relative flex flex-col items-center justify-center gap-1 text-[9px] font-semibold transition ${
-        active ? "text-white" : "text-white/38"
+      className={`group relative flex flex-col items-center justify-center gap-1 text-[10px] font-medium transition ${
+        active ? "text-red-400" : "text-white/42 hover:text-white/75"
       }`}
     >
-      <span className={`${featured ? "flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 text-white shadow-[0_8px_20px_-8px_rgba(220,38,38,0.9)]" : ""}`}>
+      <span className={`${featured ? "-translate-y-4 flex h-14 w-14 items-center justify-center rounded-[1.15rem] bg-gradient-to-br from-[#ff7f62] via-[#fa4c67] to-[#e63f73] text-white shadow-[0_18px_30px_-11px_rgba(239,70,101,0.95)] ring-4 ring-[#101014] transition group-hover:scale-[1.04]" : ""}`}>
         {children}
       </span>
-      <span>{label}</span>
+      <span className={featured ? "sr-only" : ""}>{label}</span>
       {active && !featured && <span className="absolute top-1.5 h-1 w-1 rounded-full bg-red-400" />}
+      {badgeCount > 0 && <NotificationBadge count={badgeCount} mobile />}
     </Link>
+  );
+}
+
+function NotificationBadge({ count, mobile = false }: { count: number; mobile?: boolean }) {
+  return (
+    <span className={mobile ? "absolute right-[18%] top-2.5 min-w-4 rounded-full border-2 border-[#101014] bg-red-500 px-1 text-center text-[9px] font-bold leading-4 text-white" : "-ml-1 inline-flex min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] leading-4 text-white"}>
+      {count > 9 ? "9+" : count}
+    </span>
   );
 }

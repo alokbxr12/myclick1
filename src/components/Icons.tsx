@@ -27,6 +27,16 @@ export function ShareIcon({ className = "" }: { className?: string }) {
   );
 }
 
+export function RepostIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className} aria-hidden>
+      <path d="M17 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 8h18M7 20l-4-4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 8v2a6 6 0 0 1-6 6H3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function MoreIcon({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
@@ -37,7 +47,15 @@ export function MoreIcon({ className = "" }: { className?: string }) {
   );
 }
 
-export function HomeIcon({ className = "" }: { className?: string }) {
+export function HomeIcon({ filled = false, className = "" }: { filled?: boolean; className?: string }) {
+  if (filled) {
+    return (
+      <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+        <path d="M12 3.7 2.8 11a1 1 0 0 0 .6 1.8h1.5v6.4A1.8 1.8 0 0 0 6.7 21h3.7v-5.2h3.2V21h3.7a1.8 1.8 0 0 0 1.8-1.8v-6.4h1.5a1 1 0 0 0 .6-1.8L12 3.7Z" />
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className} aria-hidden>
       <path d="M3 11.5 12 4l9 7.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -51,6 +69,41 @@ export function SearchIcon({ className = "" }: { className?: string }) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className} aria-hidden>
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.2-3.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CompassIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className} aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m15.9 8.1-2.2 4.3-4.3 2.2 2.2-4.3 4.3-2.2Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function BellIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className} aria-hidden>
+      <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 21h4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function UserProfileIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className} aria-hidden>
+      <circle cx="12" cy="7.5" r="3.5" />
+      <path d="M4.5 21a7.5 7.5 0 0 1 15 0" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function PlusIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.1} className={className} aria-hidden>
+      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
     </svg>
   );
 }

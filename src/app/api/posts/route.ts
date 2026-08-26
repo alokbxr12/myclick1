@@ -29,7 +29,9 @@ function readOptionalField(formData: FormData, key: string, maxLength: number): 
   return trimmed ? trimmed.slice(0, maxLength) : null;
 }
 
-// GET /api/posts -> feed: posts from the current user and the people they follow
+// GET /api/posts -> feed: original posts and reposts from the current user and
+// the people they follow. A repost references its original post instead of
+// copying it, so likes, comments, and authorship remain shared.
 export async function GET() {
   const session = await auth();
   const userId = session!.user.id;
@@ -41,26 +43,68 @@ export async function GET() {
   const followingIds = new Set(following.map((follow) => follow.followingId));
   const authorIds = [userId, ...followingIds];
 
-  const posts = await prisma.post.findMany({
-    where: { authorId: { in: authorIds } },
-    orderBy: { createdAt: "desc" },
-    select: {
-      ...POST_SELECT,
-      likes: { where: { userId }, select: { id: true } },
-    },
-  });
+  const FEED_POST_SELECT = {
+    ...POST_SELECT,
+    likes: { where: { userId }, select: { id: true } },
+    reposts: { where: { userId }, select: { id: true } },
+  } as const;
 
-  const shaped = posts.map(({ likes, ...post }) => ({
+  const [originalPosts, repostEvents] = await Promise.all([
+    prisma.post.findMany({
+      where: { authorId: { in: authorIds } },
+      orderBy: { createdAt: "desc" },
+      select: FEED_POST_SELECT,
+    }),
+    prisma.repost.findMany({
+      where: { userId: { in: authorIds } },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        createdAt: true,
+        user: { select: { id: true, username: true, name: true, avatarUrl: true } },
+        post: { select: FEED_POST_SELECT },
+      },
+    }),
+  ]);
+
+  const originalItems = originalPosts.map(({ likes, reposts, ...post }) => ({
     ...post,
+    feedItemId: `post:${post.id}`,
+    feedCreatedAt: post.createdAt,
     author: {
       ...post.author,
       isFollowing: followingIds.has(post.author.id),
     },
     images: getPostImages(post),
     likedByMe: likes.length > 0,
+    repostedByMe: reposts.length > 0,
+    repostedBy: null,
   }));
 
-  return NextResponse.json({ posts: shaped });
+  const repostItems = repostEvents.map(({ id, createdAt, user, post }) => {
+    const { likes, reposts, ...originalPost } = post;
+    return {
+      ...originalPost,
+      feedItemId: `repost:${id}`,
+      feedCreatedAt: createdAt,
+      author: {
+        ...originalPost.author,
+        isFollowing: followingIds.has(originalPost.author.id),
+      },
+      images: getPostImages(originalPost),
+      likedByMe: likes.length > 0,
+      repostedByMe: reposts.length > 0,
+      repostedBy: user,
+    };
+  });
+
+  const posts = [...originalItems, ...repostItems]
+    .sort((first, second) => (
+      second.feedCreatedAt.getTime() - first.feedCreatedAt.getTime()
+      || first.feedItemId.localeCompare(second.feedItemId)
+    ));
+
+  return NextResponse.json({ posts });
 }
 
 // POST /api/posts -> create a new post (multipart/form-data: image, caption)

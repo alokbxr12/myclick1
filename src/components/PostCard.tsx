@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { FollowButton } from "./FollowButton";
-import { ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
+import { ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, RepostIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { PostLikesModal } from "./PostLikesModal";
 import { formatCommentDateTime, formatPostDate } from "@/lib/formatPostDate";
@@ -41,6 +41,8 @@ export function PostCard({
   const [iso, setIso] = useState(post.iso ?? "");
   const [busy, setBusy] = useState(false);
   const [shared, setShared] = useState(false);
+  const [reposted, setReposted] = useState(post.repostedByMe ?? false);
+  const [repostBusy, setRepostBusy] = useState(false);
   const [popping, setPopping] = useState(false);
   const [commentLikeBusy, setCommentLikeBusy] = useState<string | null>(null);
 
@@ -143,9 +145,27 @@ export function PostCard({
     setTimeout(() => setShared(false), 2000);
   }
 
+  async function toggleRepost() {
+    if (isOwner || repostBusy) return;
+    setRepostBusy(true);
+    const res = await fetch(`/api/posts/${post.id}/repost`, { method: "POST" });
+    setRepostBusy(false);
+    if (!res.ok) return;
+    const data = await res.json();
+    setReposted(data.reposted);
+  }
+
   return (
     <>
       <article className="overflow-hidden rounded-[1.75rem] border border-white/[0.075] bg-[#101014] shadow-[0_26px_80px_-48px_rgba(0,0,0,0.95)] transition duration-300 hover:border-white/[0.11]">
+      {post.repostedBy && (
+        <div className="flex items-center gap-2 border-b border-white/[0.055] bg-amber-300/[0.035] px-4 py-2 text-[10px] font-semibold text-amber-100/70 sm:px-5">
+          <RepostIcon className="h-3.5 w-3.5 shrink-0 text-amber-200/80" />
+          <Link href={`/profile/${post.repostedBy.username}`} className="truncate transition hover:text-amber-100">
+            @{post.repostedBy.username} reposted this photograph
+          </Link>
+        </div>
+      )}
       <header className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
         <Link href={`/profile/${post.author.username}`} className="group flex min-w-0 items-center gap-3">
           <div className="rounded-full bg-gradient-to-br from-red-400 via-red-600 to-amber-500 p-[2px]">
@@ -284,6 +304,21 @@ export function PostCard({
 
           <div className="flex items-center gap-2">
             {shared && <span className="text-[10px] font-medium text-emerald-400">Link copied</span>}
+            {!isOwner && (
+              <button
+                onClick={toggleRepost}
+                disabled={repostBusy}
+                aria-label={reposted ? "Remove repost" : "Repost photograph"}
+                className={`flex h-10 items-center gap-1.5 rounded-xl px-3 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                  reposted
+                    ? "bg-amber-300/10 text-amber-200 hover:bg-amber-300/15"
+                    : "bg-white/[0.035] text-white/55 hover:bg-white/[0.07] hover:text-white"
+                }`}
+              >
+                <RepostIcon className="h-[18px] w-[18px]" />
+                <span>{reposted ? "Reposted" : "Repost"}</span>
+              </button>
+            )}
             <button onClick={sharePost} className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.035] text-white/48 transition hover:bg-white/[0.07] hover:text-white" aria-label="Share photograph">
               <ShareIcon className="h-[18px] w-[18px]" />
             </button>

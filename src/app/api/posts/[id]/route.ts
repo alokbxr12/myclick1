@@ -40,6 +40,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     select: {
       ...POST_SELECT,
       likes: { where: { userId: session!.user.id }, select: { id: true } },
+      reposts: { where: { userId: session!.user.id }, select: { id: true } },
     },
   });
 
@@ -47,8 +48,8 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  const { likes, ...rest } = post;
-  return NextResponse.json({ post: { ...rest, images: getPostImages(rest), likedByMe: likes.length > 0 } });
+  const { likes, reposts, ...rest } = post;
+  return NextResponse.json({ post: { ...rest, images: getPostImages(rest), likedByMe: likes.length > 0, repostedByMe: reposts.length > 0 } });
 }
 
 // PATCH /api/posts/:id -> edit caption (owner only)

@@ -43,7 +43,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   const session = await auth();
   const userId = session!.user.id;
 
-  const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+  const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true, authorId: true } });
   if (!post) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
@@ -57,15 +57,31 @@ export async function POST(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Comment must be at most 1000 characters" }, { status: 400 });
   }
 
-  const comment = await prisma.comment.create({
-    data: { content, userId, postId },
-    select: {
-      id: true,
-      content: true,
-      createdAt: true,
-      user: { select: { id: true, username: true, name: true, avatarUrl: true } },
-      _count: { select: { likes: true } },
-    },
+  const comment = await prisma.$transaction(async (tx) => {
+    const createdComment = await tx.comment.create({
+      data: { content, userId, postId },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        user: { select: { id: true, username: true, name: true, avatarUrl: true } },
+        _count: { select: { likes: true } },
+      },
+    });
+
+    if (post.authorId !== userId) {
+      await tx.notification.create({
+        data: {
+          type: "COMMENT",
+          actorId: userId,
+          recipientId: post.authorId,
+          postId,
+          commentId: createdComment.id,
+        },
+      });
+    }
+
+    return createdComment;
   });
 
   return NextResponse.json({ comment: { ...comment, user: { ...comment.user, isFollowing: false }, likedByMe: false } }, { status: 201 });

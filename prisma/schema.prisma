@@ -29,9 +29,12 @@ model User {
 
   posts        Post[]
   likes        Like[]
+  reposts      Repost[]
   comments     Comment[]
   commentLikes CommentLike[]
   resetTokens  PasswordResetToken[]
+  sentNotifications     Notification[] @relation("NotificationActor")
+  receivedNotifications Notification[] @relation("NotificationRecipient")
 
   // users this user follows
   following Follow[] @relation("Following")
@@ -74,9 +77,11 @@ model Post {
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   likes    Like[]
+  reposts  Repost[]
   comments Comment[]
   images   PostImage[]
   featuredAppearances FeaturedPhoto[]
+  notifications Notification[]
 
   @@index([authorId])
   @@map("posts")
@@ -139,6 +144,22 @@ model Like {
   @@map("likes")
 }
 
+model Repost {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
+  @@index([postId])
+  @@map("reposts")
+}
+
 model Comment {
   id        String   @id @default(cuid())
   content   String
@@ -151,9 +172,40 @@ model Comment {
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   likes CommentLike[]
+  notifications Notification[]
 
   @@index([postId])
   @@map("comments")
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  REPOST
+  FOLLOW
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+
+  actorId String
+  actor   User   @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  recipientId String
+  recipient   User   @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  postId String?
+  post   Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, createdAt])
+  @@index([recipientId, readAt])
+  @@map("notifications")
 }
 
 model CommentLike {

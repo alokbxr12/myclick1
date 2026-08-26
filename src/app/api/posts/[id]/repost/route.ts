@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
-// POST /api/posts/:id/like -> toggle like on a post
+// POST /api/posts/:id/repost -> toggle a repost of the original post.
 export async function POST(_request: Request, { params }: RouteParams) {
   const { id: postId } = await params;
   const session = await auth();
@@ -14,26 +14,25 @@ export async function POST(_request: Request, { params }: RouteParams) {
   if (!post) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
+  if (post.authorId === userId) {
+    return NextResponse.json({ error: "You cannot repost your own photograph" }, { status: 400 });
+  }
 
-  const existing = await prisma.like.findUnique({
+  const existing = await prisma.repost.findUnique({
     where: { userId_postId: { userId, postId } },
+    select: { id: true },
   });
 
   if (existing) {
-    await prisma.like.delete({ where: { id: existing.id } });
+    await prisma.repost.delete({ where: { id: existing.id } });
   } else {
     await prisma.$transaction(async (tx) => {
-      await tx.like.create({ data: { userId, postId } });
-
-      if (post.authorId !== userId) {
-        await tx.notification.create({
-          data: { type: "LIKE", actorId: userId, recipientId: post.authorId, postId },
-        });
-      }
+      await tx.repost.create({ data: { userId, postId } });
+      await tx.notification.create({
+        data: { type: "REPOST", actorId: userId, recipientId: post.authorId, postId },
+      });
     });
   }
 
-  const likeCount = await prisma.like.count({ where: { postId } });
-
-  return NextResponse.json({ liked: !existing, likeCount });
+  return NextResponse.json({ reposted: !existing });
 }

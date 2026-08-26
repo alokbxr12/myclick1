@@ -55,6 +55,8 @@ The schema lives in `prisma/schema.prisma`. Running the migration below will cre
 | `posts` | one row per uploaded photo (image URL, caption, author) |
 | `follows` | follower → following relationships (who follows whom) |
 | `likes` | which user liked which post |
+| `reposts` | posts a member has shared with their followers |
+| `notifications` | likes, comments, reposts, and follows directed at a member |
 | `comments` | comments left on a post |
 | `comment_likes` | which user liked which comment |
 | `password_reset_tokens` | short-lived password reset tokens |
@@ -69,7 +71,7 @@ Once `.env` points at your local database, apply the migrations already included
 npx prisma migrate deploy
 ```
 
-This creates the eight tables above in your database. Run `npx prisma migrate dev --name <change-name>` when you later change `schema.prisma` during development.
+This creates the tables above in your database. Run `npx prisma migrate dev --name <change-name>` when you later change `schema.prisma` during development.
 
 ## 5. Run the app locally
 
@@ -85,7 +87,8 @@ Visit http://localhost:3000 — you'll land on `/login`. Click "Create one" to r
 ## How it works
 - **Register/Login** (`/register`, `/login`) — sign in with email or username + password, hashed with bcrypt.
 - **Forgot password** (`/forgot-password`, `/reset-password/[token]`) — emails a time-limited reset link via Gmail SMTP.
-- **Feed** (`/feed`) — shows posts from yourself and everyone you follow, newest first, plus a daily Featured Photos row selected from yesterday's top-liked uploads.
+- **Feed** (`/feed`) — shows posts and reposts from yourself and everyone you follow, plus a daily Featured Photos row selected from yesterday's top-liked uploads.
+- **Activity** (`/activity`) — shows likes, comments, reposts, and new followers, with an unread badge that clears when the activity feed is opened.
 - **Search** (`/search`) — find other users by username or name, and open their profile.
 - **Upload** (`/upload`) — pick a photo + caption, stored in local PostgreSQL.
 - **Profile** (`/profile/[username]`) — bio, photo grid, follower/following counts, and a Follow/Following button for other users.

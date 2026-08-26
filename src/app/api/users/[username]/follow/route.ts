@@ -18,11 +18,19 @@ export async function POST(_request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "You cannot follow yourself" }, { status: 400 });
   }
 
-  await prisma.follow.upsert({
+  const existingFollow = await prisma.follow.findUnique({
     where: { followerId_followingId: { followerId: currentUserId, followingId: target.id } },
-    create: { followerId: currentUserId, followingId: target.id },
-    update: {},
+    select: { id: true },
   });
+
+  if (!existingFollow) {
+    await prisma.$transaction(async (tx) => {
+      await tx.follow.create({ data: { followerId: currentUserId, followingId: target.id } });
+      await tx.notification.create({
+        data: { type: "FOLLOW", actorId: currentUserId, recipientId: target.id },
+      });
+    });
+  }
 
   return NextResponse.json({ following: true });
 }

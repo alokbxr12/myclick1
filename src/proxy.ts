@@ -21,9 +21,11 @@ export const config = {
     "/upload",
     "/settings",
     "/search",
+    "/activity",
     "/profile/:path*",
     "/p/:path*",
     "/api/posts/:path*",
     "/api/users/:path*",
+    "/api/activity",
   ],
 };
