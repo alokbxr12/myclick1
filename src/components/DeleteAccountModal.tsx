@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { signOut } from "next-auth/react";
 import { CloseIcon, TrashIcon } from "./Icons";
 
@@ -49,21 +50,21 @@ export function DeleteAccountModal({ onClose }: { onClose: () => void }) {
     signOut({ callbackUrl: "/login" });
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/80 sm:items-center sm:px-6 sm:py-7"
       onClick={deleted ? handleFinalGoodbye : onClose}
     >
       <div
-        className="glass-panel w-full max-w-sm rounded-2xl shadow-2xl p-6 my-auto flex flex-col gap-4 text-white border border-white/10"
+        className="my-auto flex min-h-dvh w-full flex-col gap-6 bg-[#111115] p-5 text-white shadow-2xl sm:min-h-[34rem] sm:max-w-2xl sm:rounded-3xl sm:border sm:border-white/10 sm:p-9"
         onClick={(e) => e.stopPropagation()}
       >
         {!deleted ? (
           <>
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h2 className="font-bold text-lg text-red-500 flex items-center gap-2">
-                <TrashIcon className="w-5 h-5" />
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-red-400">
+                <TrashIcon className="h-5 w-5" />
                 Delete Account
               </h2>
               <button
@@ -76,20 +77,20 @@ export function DeleteAccountModal({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* Warning Note */}
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200 leading-relaxed">
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm leading-6 text-red-100">
               ⚠️ <strong>Warning:</strong> This action is permanent. All your photos, posts, comments, likes, and followers will be permanently deleted.
             </div>
 
             {/* Reason Options */}
-            <div className="flex flex-col gap-2.5">
-              <label className="text-xs font-semibold text-white">
+            <div className="flex flex-1 flex-col gap-3">
+              <label className="text-sm font-semibold text-white">
                 Please tell us why you&apos;re leaving:
               </label>
-              <div className="flex flex-col gap-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {REASONS.map((reason) => (
                   <label
                     key={reason}
-                    className="flex items-center gap-2.5 text-xs cursor-pointer text-white/80 hover:text-white transition-colors"
+                    className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.025] px-3 py-3 text-xs text-white/80 transition hover:bg-white/[0.06] hover:text-white"
                   >
                     <input
                       type="radio"
@@ -110,7 +111,7 @@ export function DeleteAccountModal({ onClose }: { onClose: () => void }) {
                   onChange={(e) => setCustomReason(e.target.value)}
                   placeholder="Tell us more…"
                   rows={2}
-                  className="w-full mt-1 rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs text-white placeholder:text-white/40 focus:ring-2 focus:ring-red-500 outline-none"
+                  className="mt-1 w-full rounded-xl border border-white/20 bg-white/5 px-3 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-red-500 sm:col-span-2"
                 />
               )}
             </div>
@@ -118,7 +119,7 @@ export function DeleteAccountModal({ onClose }: { onClose: () => void }) {
             {error && <p className="text-xs text-red-400 font-medium text-center">{error}</p>}
 
             {/* Always-visible Action Buttons */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+            <div className="mt-auto flex flex-col gap-2 border-t border-white/10 pt-5">
               <button
                 type="button"
                 onClick={handleDelete}
@@ -155,6 +156,7 @@ export function DeleteAccountModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
