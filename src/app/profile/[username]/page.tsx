@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { ProfileHeader } from "@/components/ProfileHeader";
 import { ProfilePostsGrid } from "@/components/ProfilePostsGrid";
+import { getPostImages } from "@/lib/post-images";
 
 export default async function ProfilePage({
   params,
@@ -33,6 +34,7 @@ export default async function ProfilePage({
           aperture: true,
           shutterSpeed: true,
           iso: true,
+          images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
           _count: { select: { likes: true, comments: true } },
           likes: { where: { userId: currentUserId }, select: { id: true } },
         },
@@ -54,6 +56,7 @@ export default async function ProfilePage({
     ...post,
     createdAt: post.createdAt.toISOString(),
     author: { id: user.id, username: user.username, name: user.name, avatarUrl: user.avatarUrl, isFollowing },
+    images: getPostImages(post),
     likedByMe: likes.length > 0,
   }));
 

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PostCard } from "@/components/PostCard";
+import { getPostImages } from "@/lib/post-images";
 
 const POST_SELECT = {
   id: true,
@@ -14,6 +15,7 @@ const POST_SELECT = {
   shutterSpeed: true,
   iso: true,
   author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+  images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
 
@@ -45,6 +47,7 @@ export default async function PostPage({
     ...rest,
     createdAt: rest.createdAt.toISOString(),
     author: { ...rest.author, isFollowing },
+    images: getPostImages(rest),
     likedByMe: likes.length > 0,
   };
 

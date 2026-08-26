@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { saveUploadedImage } from "@/lib/upload";
+import { deleteUploadedImage } from "@/lib/upload";
+import { getImageUploadError, MAX_IMAGES_PER_POST, MAX_POST_IMAGE_BYTES } from "@/lib/image-upload-constraints";
+import { getPostImages } from "@/lib/post-images";
 
 const POST_SELECT = {
   id: true,
@@ -14,6 +17,7 @@ const POST_SELECT = {
   shutterSpeed: true,
   iso: true,
   author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+  images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
 
@@ -52,6 +56,7 @@ export async function GET() {
       ...post.author,
       isFollowing: followingIds.has(post.author.id),
     },
+    images: getPostImages(post),
     likedByMe: likes.length > 0,
   }));
 
@@ -73,11 +78,27 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
-  const image = formData.get("image");
+  const images = formData.getAll("images").filter((value): value is File => value instanceof File && value.size > 0);
+  const legacyImage = formData.get("image");
+  const files = images.length > 0
+    ? images
+    : legacyImage instanceof File && legacyImage.size > 0
+      ? [legacyImage]
+      : [];
   const caption = formData.get("caption");
 
-  if (!(image instanceof File) || image.size === 0) {
-    return NextResponse.json({ error: "An image file is required" }, { status: 400 });
+  if (files.length === 0) {
+    return NextResponse.json({ error: "At least one image is required" }, { status: 400 });
+  }
+  if (files.length > MAX_IMAGES_PER_POST) {
+    return NextResponse.json({ error: `You can add up to ${MAX_IMAGES_PER_POST} photos in one post` }, { status: 400 });
+  }
+  if (files.reduce((total, file) => total + file.size, 0) > MAX_POST_IMAGE_BYTES) {
+    return NextResponse.json({ error: "Photos in one post must be 4 MB or smaller in total" }, { status: 400 });
+  }
+  for (const file of files) {
+    const validationError = getImageUploadError(file);
+    if (validationError) return NextResponse.json({ error: validationError }, { status: 400 });
   }
   if (caption !== null && typeof caption !== "string") {
     return NextResponse.json({ error: "Invalid caption" }, { status: 400 });
@@ -86,29 +107,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Caption must be at most 2000 characters" }, { status: 400 });
   }
 
-  let imageUrl: string;
+  const imageUrls: string[] = [];
   try {
-    imageUrl = await saveUploadedImage(image);
+    for (const file of files) {
+      imageUrls.push(await saveUploadedImage(file));
+    }
   } catch (err) {
+    await Promise.all(imageUrls.map((imageUrl) => deleteUploadedImage(imageUrl)));
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to upload image" },
       { status: 400 }
     );
   }
 
-  const post = await prisma.post.create({
-    data: {
-      authorId: userId,
-      imageUrl,
-      caption: typeof caption === "string" && caption.trim() ? caption.trim() : null,
-      cameraModel: readOptionalField(formData, "cameraModel", 60),
-      focalLength: readOptionalField(formData, "focalLength", 20),
-      aperture: readOptionalField(formData, "aperture", 20),
-      shutterSpeed: readOptionalField(formData, "shutterSpeed", 20),
-      iso: readOptionalField(formData, "iso", 20),
-    },
-    select: POST_SELECT,
-  });
+  try {
+    const post = await prisma.post.create({
+      data: {
+        authorId: userId,
+        imageUrl: imageUrls[0],
+        images: { create: imageUrls.map((imageUrl, sortOrder) => ({ imageUrl, sortOrder })) },
+        caption: typeof caption === "string" && caption.trim() ? caption.trim() : null,
+        cameraModel: readOptionalField(formData, "cameraModel", 60),
+        focalLength: readOptionalField(formData, "focalLength", 20),
+        aperture: readOptionalField(formData, "aperture", 20),
+        shutterSpeed: readOptionalField(formData, "shutterSpeed", 20),
+        iso: readOptionalField(formData, "iso", 20),
+      },
+      select: POST_SELECT,
+    });
 
-  return NextResponse.json({ post: { ...post, author: { ...post.author, isFollowing: false }, likedByMe: false } }, { status: 201 });
+    return NextResponse.json({
+      post: {
+        ...post,
+        images: getPostImages(post),
+        author: { ...post.author, isFollowing: false },
+        likedByMe: false,
+      },
+    }, { status: 201 });
+  } catch {
+    await Promise.all(imageUrls.map((imageUrl) => deleteUploadedImage(imageUrl)));
+    return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
+  }
 }

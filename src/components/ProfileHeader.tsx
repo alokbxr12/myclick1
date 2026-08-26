@@ -4,8 +4,7 @@ import { useState } from "react";
 import { Avatar } from "./Avatar";
 import { FollowButton } from "./FollowButton";
 import { ProfileStats } from "./ProfileStats";
-import { EditAvatarModal } from "./EditAvatarModal";
-import { EditBioModal } from "./EditBioModal";
+import { EditProfileModal } from "./EditProfileModal";
 import { DeleteAccountModal } from "./DeleteAccountModal";
 import { CameraEditIcon, PencilIcon, TrashIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -25,8 +24,7 @@ export function ProfileHeader({
   isMe: boolean;
   isFollowing: boolean;
 }) {
-  const [showEditAvatar, setShowEditAvatar] = useState(false);
-  const [showEditBio, setShowEditBio] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   return (
@@ -34,7 +32,7 @@ export function ProfileHeader({
       {/* Avatar with click-to-edit overlay when isMe */}
       <div
         className={`relative shrink-0 self-center sm:self-auto ${isMe ? "cursor-pointer group" : ""}`}
-        onClick={() => isMe && setShowEditAvatar(true)}
+        onClick={() => isMe && setShowEditProfile(true)}
       >
         <Avatar src={user.avatarUrl} username={user.username} size={96} />
         {isMe && (
@@ -61,18 +59,11 @@ export function ProfileHeader({
           {isMe && (
             <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={() => setShowEditBio(true)}
+                onClick={() => setShowEditProfile(true)}
                 className="rounded-lg border border-black/15 px-3 py-1 text-xs font-medium transition-colors hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10 flex items-center gap-1.5"
               >
                 <PencilIcon className="w-3.5 h-3.5" />
-                <span>Edit bio</span>
-              </button>
-              <button
-                onClick={() => setShowEditAvatar(true)}
-                className="rounded-lg border border-black/15 dark:border-white/20 px-3 py-1 text-xs font-medium hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center gap-1.5"
-              >
-                <CameraEditIcon className="w-3.5 h-3.5" />
-                <span>Change Photo</span>
+                <span>Edit profile</span>
               </button>
               <button
                 onClick={() => setShowDeleteAccount(true)}
@@ -97,15 +88,7 @@ export function ProfileHeader({
         {user.bio && <p className="mt-0.5 whitespace-pre-line break-words text-sm text-black/70 dark:text-white/70">{user.bio}</p>}
       </div>
 
-      {showEditAvatar && (
-        <EditAvatarModal
-          currentAvatarUrl={user.avatarUrl}
-          username={user.username}
-          onClose={() => setShowEditAvatar(false)}
-        />
-      )}
-
-      {showEditBio && <EditBioModal currentBio={user.bio} onClose={() => setShowEditBio(false)} />}
+      {showEditProfile && <EditProfileModal user={user} onClose={() => setShowEditProfile(false)} />}
 
       {showDeleteAccount && (
         <DeleteAccountModal onClose={() => setShowDeleteAccount(false)} />

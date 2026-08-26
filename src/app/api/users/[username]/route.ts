@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getPostImages } from "@/lib/post-images";
 
 type RouteParams = { params: Promise<{ username: string }> };
 
@@ -26,6 +27,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
           caption: true,
           imageUrl: true,
           createdAt: true,
+          images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
           _count: { select: { likes: true, comments: true } },
         },
       },
@@ -44,6 +46,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
     })) !== null;
 
   return NextResponse.json({
-    user: { ...user, isFollowing, isMe: user.id === currentUserId },
+    user: {
+      ...user,
+      posts: user.posts.map((post) => ({ ...post, images: getPostImages(post) })),
+      isFollowing,
+      isMe: user.id === currentUserId,
+    },
   });
 }

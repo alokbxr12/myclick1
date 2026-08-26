@@ -75,9 +75,23 @@ model Post {
 
   likes    Like[]
   comments Comment[]
+  images   PostImage[]
 
   @@index([authorId])
   @@map("posts")
+}
+
+model PostImage {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  sortOrder Int      @default(0)
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, sortOrder])
+  @@index([postId])
+  @@map("post_images")
 }
 
 model Like {

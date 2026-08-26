@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { deleteUploadedImage } from "@/lib/upload";
+import { getPostImages } from "@/lib/post-images";
 
 const POST_SELECT = {
   id: true,
@@ -15,6 +16,7 @@ const POST_SELECT = {
   shutterSpeed: true,
   iso: true,
   author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+  images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
 
@@ -46,7 +48,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   }
 
   const { likes, ...rest } = post;
-  return NextResponse.json({ post: { ...rest, likedByMe: likes.length > 0 } });
+  return NextResponse.json({ post: { ...rest, images: getPostImages(rest), likedByMe: likes.length > 0 } });
 }
 
 // PATCH /api/posts/:id -> edit caption (owner only)
@@ -94,7 +96,10 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
   const session = await auth();
   const userId = session!.user.id;
 
-  const existing = await prisma.post.findUnique({ where: { id }, select: { authorId: true, imageUrl: true } });
+  const existing = await prisma.post.findUnique({
+    where: { id },
+    select: { authorId: true, imageUrl: true, images: { select: { imageUrl: true } } },
+  });
   if (!existing) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
@@ -103,7 +108,11 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
   }
 
   await prisma.post.delete({ where: { id } });
-  await deleteUploadedImage(existing.imageUrl);
+  await Promise.all(
+    [...new Set([existing.imageUrl, ...existing.images.map((image) => image.imageUrl)])].map((imageUrl) =>
+      deleteUploadedImage(imageUrl)
+    )
+  );
 
   return NextResponse.json({ success: true });
 }

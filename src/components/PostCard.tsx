@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { FollowButton } from "./FollowButton";
-import { HeartIcon, CommentIcon, ShareIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
+import { ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { PostLikesModal } from "./PostLikesModal";
 import { formatCommentDateTime, formatPostDate } from "@/lib/formatPostDate";
@@ -46,6 +46,10 @@ export function PostCard({
 
   const isOwner = session?.user?.id === post.author.id;
   const hasExif = post.cameraModel || post.focalLength || post.aperture || post.shutterSpeed || post.iso;
+  const postImages = post.images.length > 0 ? post.images : [{ id: `legacy-${post.id}`, imageUrl: post.imageUrl, sortOrder: 0 }];
+  const [selectedImage, setSelectedImage] = useState({ postId: post.id, index: 0 });
+  const activeImageIndex = selectedImage.postId === post.id ? Math.min(selectedImage.index, postImages.length - 1) : 0;
+  const activeImage = postImages[activeImageIndex] ?? postImages[0];
 
   async function toggleLike() {
     const res = await fetch(`/api/posts/${post.id}/like`, { method: "POST" });
@@ -202,8 +206,39 @@ export function PostCard({
       <div className="relative flex min-h-[260px] w-full items-center justify-center overflow-hidden bg-black" onDoubleClick={toggleLike}>
         {/* Natural dimensions keep each photographer's original framing intact. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={post.imageUrl} alt={post.caption ?? `Photograph by ${post.author.username}`} className="block h-auto max-h-[82vh] w-full object-contain" />
+        <img src={activeImage.imageUrl} alt={post.caption ?? `Photograph by ${post.author.username}`} className="block h-auto max-h-[82vh] w-full object-contain" />
         {imageOverlay}
+        {postImages.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setSelectedImage({ postId: post.id, index: (activeImageIndex - 1 + postImages.length) % postImages.length });
+              }}
+              onDoubleClick={(event) => event.stopPropagation()}
+              aria-label="Previous photo"
+              className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-lg backdrop-blur transition hover:bg-black/70 sm:left-4 sm:h-10 sm:w-10"
+            >
+              <ChevronLeftIcon className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setSelectedImage({ postId: post.id, index: (activeImageIndex + 1) % postImages.length });
+              }}
+              onDoubleClick={(event) => event.stopPropagation()}
+              aria-label="Next photo"
+              className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/45 text-white shadow-lg backdrop-blur transition hover:bg-black/70 sm:right-4 sm:h-10 sm:w-10"
+            >
+              <ChevronRightIcon className="h-5 w-5" />
+            </button>
+            <span className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-semibold text-white/85 backdrop-blur">
+              {activeImageIndex + 1} / {postImages.length}
+            </span>
+          </>
+        )}
         {popping && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/5">
             <HeartIcon filled className="like-pop h-20 w-20 text-red-500 drop-shadow-[0_8px_25px_rgba(0,0,0,0.65)]" />

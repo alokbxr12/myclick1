@@ -79,7 +79,7 @@ export function ProfilePostsGrid({ posts: initialPosts }: { posts: Post[] }) {
             }}
             disabled={!hasPrev}
             aria-label="Previous photo"
-            className="hidden sm:flex fixed left-4 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-11 h-11 rounded-full bg-white/10 text-white transition-opacity disabled:opacity-25 disabled:cursor-not-allowed hover:bg-white/20"
+            className="fixed left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-opacity hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-25 sm:left-4 sm:h-11 sm:w-11"
           >
             <ChevronLeftIcon className="w-6 h-6" />
           </button>
@@ -108,7 +108,7 @@ export function ProfilePostsGrid({ posts: initialPosts }: { posts: Post[] }) {
             }}
             disabled={!hasNext}
             aria-label="Next photo"
-            className="hidden sm:flex fixed right-4 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-11 h-11 rounded-full bg-white/10 text-white transition-opacity disabled:opacity-25 disabled:cursor-not-allowed hover:bg-white/20"
+            className="fixed right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-opacity hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-25 sm:right-4 sm:h-11 sm:w-11"
           >
             <ChevronRightIcon className="w-6 h-6" />
           </button>

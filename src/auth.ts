@@ -47,6 +47,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.avatarUrl = (user as { avatarUrl?: string | null }).avatarUrl ?? null;
       }
       if (trigger === "update" && session) {
+        if ("username" in session && typeof session.username === "string") {
+          token.username = session.username;
+        }
         if ("avatarUrl" in session) {
           token.avatarUrl = session.avatarUrl ?? null;
         }

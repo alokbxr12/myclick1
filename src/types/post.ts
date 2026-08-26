@@ -6,6 +6,12 @@ export type PostAuthor = {
   isFollowing: boolean;
 };
 
+export type PostImage = {
+  id: string;
+  imageUrl: string;
+  sortOrder: number;
+};
+
 export type Post = {
   id: string;
   caption: string | null;
@@ -17,6 +23,7 @@ export type Post = {
   shutterSpeed: string | null;
   iso: string | null;
   author: PostAuthor;
+  images: PostImage[];
   _count: { likes: number; comments: number };
   likedByMe: boolean;
 };
