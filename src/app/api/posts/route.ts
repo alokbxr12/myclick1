@@ -57,7 +57,8 @@ export async function GET() {
       select: FEED_POST_SELECT,
     }),
     prisma.repost.findMany({
-      where: { userId: { in: authorIds } },
+      // A repost is for the reposter's followers, not for the reposter's own feed.
+      where: { userId: { in: [...followingIds] } },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
