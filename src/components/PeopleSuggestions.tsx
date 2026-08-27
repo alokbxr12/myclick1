@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Avatar } from "./Avatar";
 import { FollowButton } from "./FollowButton";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -16,7 +17,21 @@ export type SuggestedPerson = {
 };
 
 export function PeopleSuggestions({ people, className = "" }: { people: SuggestedPerson[]; className?: string }) {
-  if (people.length === 0) return null;
+  const [hiddenUsernames, setHiddenUsernames] = useState<string[]>([]);
+  const visiblePeople = people.filter((person) => !hiddenUsernames.includes(person.username));
+
+  useEffect(() => {
+    const removeNewlyFollowedPerson = (event: Event) => {
+      const detail = (event as CustomEvent<{ username?: string; following?: boolean }>).detail;
+      if (!detail?.following || !detail.username) return;
+      setHiddenUsernames((current) => current.includes(detail.username!) ? current : [...current, detail.username!]);
+    };
+
+    window.addEventListener("myclick:follow-change", removeNewlyFollowedPerson);
+    return () => window.removeEventListener("myclick:follow-change", removeNewlyFollowedPerson);
+  }, []);
+
+  if (visiblePeople.length === 0) return null;
 
   return (
     <section aria-labelledby="people-suggestions-title" className={`overflow-hidden rounded-3xl border border-white/[0.075] bg-[#101014]/82 shadow-[0_20px_56px_-42px_rgba(0,0,0,0.98)] ${className}`}>
@@ -29,7 +44,7 @@ export function PeopleSuggestions({ people, className = "" }: { people: Suggeste
       </div>
 
       <div className="divide-y divide-white/[0.055]">
-        {people.map((person) => (
+        {visiblePeople.map((person) => (
           <div key={person.id} className="flex items-center gap-3 px-5 py-3.5">
             <Link href={`/profile/${person.username}`} className="shrink-0 rounded-full transition hover:scale-[1.03]">
               <Avatar src={person.avatarUrl} username={person.username} size={40} />

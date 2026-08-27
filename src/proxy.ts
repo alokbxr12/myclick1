@@ -22,6 +22,7 @@ export const config = {
     "/settings",
     "/search",
     "/activity",
+    "/saved",
     "/profile/:path*",
     "/p/:path*",
     "/api/posts/:path*",

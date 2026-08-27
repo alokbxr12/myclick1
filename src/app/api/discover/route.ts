@@ -16,10 +16,11 @@ export async function GET() {
     select: { followingId: true },
   });
   const followingIds = new Set(following.map((relationship) => relationship.followingId));
+  const suggestedPersonExclusions = [currentUserId, ...followingIds];
 
-  const [people, photoCandidates, featuredPhotos] = await Promise.all([
+  const [people, photoCandidates, featuredPhotos, savedFramesCount] = await Promise.all([
     prisma.user.findMany({
-      where: { id: { not: currentUserId } },
+      where: { id: { notIn: suggestedPersonExclusions } },
       select: {
         id: true,
         username: true,
@@ -43,13 +44,12 @@ export async function GET() {
       },
     }),
     getDailyFeaturedPhotos(),
+    prisma.savedPost.count({ where: { userId: currentUserId } }),
   ]);
 
   const suggestedPeople = people
-    .map((person) => ({ ...person, isFollowing: followingIds.has(person.id) }))
+    .map((person) => ({ ...person, isFollowing: false }))
     .sort((first, second) => {
-      if (first.isFollowing !== second.isFollowing) return Number(first.isFollowing) - Number(second.isFollowing);
-
       const firstScore = first._count.posts * 2 + first._count.followers;
       const secondScore = second._count.posts * 2 + second._count.followers;
       return secondScore - firstScore || first.username.localeCompare(second.username);
@@ -71,6 +71,7 @@ export async function GET() {
   return NextResponse.json({
     suggestedPeople,
     inspirationPosts,
+    savedFramesCount,
     featuredPhotos: featuredPhotos.map((post) => ({
       ...post,
       author: {

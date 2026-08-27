@@ -47,6 +47,7 @@ export async function GET() {
     ...POST_SELECT,
     likes: { where: { userId }, select: { id: true } },
     reposts: { where: { userId }, select: { id: true } },
+    savedBy: { where: { userId }, select: { id: true } },
   } as const;
 
   const [originalPosts, repostEvents] = await Promise.all([
@@ -67,7 +68,7 @@ export async function GET() {
     }),
   ]);
 
-  const originalItems = originalPosts.map(({ likes, reposts, ...post }) => ({
+  const originalItems = originalPosts.map(({ likes, reposts, savedBy, ...post }) => ({
     ...post,
     feedItemId: `post:${post.id}`,
     feedCreatedAt: post.createdAt,
@@ -78,11 +79,12 @@ export async function GET() {
     images: getPostImages(post),
     likedByMe: likes.length > 0,
     repostedByMe: reposts.length > 0,
+    savedByMe: savedBy.length > 0,
     repostedBy: null,
   }));
 
   const repostItems = repostEvents.map(({ id, createdAt, user, post }) => {
-    const { likes, reposts, ...originalPost } = post;
+    const { likes, reposts, savedBy, ...originalPost } = post;
     return {
       ...originalPost,
       feedItemId: `repost:${id}`,
@@ -94,6 +96,7 @@ export async function GET() {
       images: getPostImages(originalPost),
       likedByMe: likes.length > 0,
       repostedByMe: reposts.length > 0,
+      savedByMe: savedBy.length > 0,
       repostedBy: user,
     };
   });
@@ -186,6 +189,7 @@ export async function POST(request: Request) {
         images: getPostImages(post),
         author: { ...post.author, isFollowing: false },
         likedByMe: false,
+        savedByMe: false,
       },
     }, { status: 201 });
   } catch {

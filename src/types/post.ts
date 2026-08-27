@@ -28,6 +28,7 @@ export type Post = {
   _count: { likes: number; comments: number };
   likedByMe: boolean;
   repostedByMe?: boolean;
+  savedByMe?: boolean;
   repostedBy?: { id: string; username: string; name: string | null; avatarUrl: string | null } | null;
 };
 

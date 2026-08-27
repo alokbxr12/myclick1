@@ -34,12 +34,13 @@ export default async function PostPage({
       ...POST_SELECT,
       likes: { where: { userId }, select: { id: true } },
       reposts: { where: { userId }, select: { id: true } },
+      savedBy: { where: { userId }, select: { id: true } },
     },
   });
 
   if (!post) notFound();
 
-  const { likes, reposts, ...rest } = post;
+  const { likes, reposts, savedBy, ...rest } = post;
   const isFollowing = rest.author.id !== userId && (await prisma.follow.findUnique({
     where: { followerId_followingId: { followerId: userId, followingId: rest.author.id } },
     select: { followerId: true },
@@ -51,6 +52,7 @@ export default async function PostPage({
     images: getPostImages(rest),
     likedByMe: likes.length > 0,
     repostedByMe: reposts.length > 0,
+    savedByMe: savedBy.length > 0,
   };
 
   return (

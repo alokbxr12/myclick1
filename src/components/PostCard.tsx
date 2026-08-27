@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { FollowButton } from "./FollowButton";
-import { ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, RepostIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
+import { BookmarkIcon, ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, RepostIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { PostLikesModal } from "./PostLikesModal";
 import { formatCommentDateTime, formatPostDate } from "@/lib/formatPostDate";
@@ -14,11 +14,13 @@ import type { Comment, Post } from "@/types/post";
 export function PostCard({
   post,
   onDeleted,
+  onSavedChange,
   imageOverlay,
   showOwnerMenu = false,
 }: {
   post: Post;
   onDeleted?: (id: string) => void;
+  onSavedChange?: (id: string, saved: boolean) => void;
   imageOverlay?: React.ReactNode;
   showOwnerMenu?: boolean;
 }) {
@@ -43,6 +45,8 @@ export function PostCard({
   const [shared, setShared] = useState(false);
   const [reposted, setReposted] = useState(post.repostedByMe ?? false);
   const [repostBusy, setRepostBusy] = useState(false);
+  const [saved, setSaved] = useState(post.savedByMe ?? false);
+  const [saveBusy, setSaveBusy] = useState(false);
   const [popping, setPopping] = useState(false);
   const [commentLikeBusy, setCommentLikeBusy] = useState<string | null>(null);
 
@@ -153,6 +157,18 @@ export function PostCard({
     if (!res.ok) return;
     const data = await res.json();
     setReposted(data.reposted);
+  }
+
+  async function toggleSaved() {
+    if (saveBusy) return;
+    setSaveBusy(true);
+    const res = await fetch(`/api/posts/${post.id}/save`, { method: "POST" });
+    setSaveBusy(false);
+    if (!res.ok) return;
+    const data = await res.json();
+    setSaved(data.saved);
+    onSavedChange?.(post.id, data.saved);
+    window.dispatchEvent(new CustomEvent("myclick:saved-frames-changed", { detail: { saved: data.saved } }));
   }
 
   return (
@@ -304,6 +320,19 @@ export function PostCard({
 
           <div className="flex items-center gap-2">
             {shared && <span className="text-[10px] font-medium text-emerald-400">Link copied</span>}
+            <button
+              onClick={toggleSaved}
+              disabled={saveBusy}
+              aria-label={saved ? "Remove from saved frames" : "Save photograph"}
+              title={saved ? "Saved" : "Save frame"}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                saved
+                  ? "bg-red-500/10 text-red-400 hover:bg-red-500/15"
+                  : "bg-white/[0.035] text-white/48 hover:bg-white/[0.07] hover:text-white"
+              }`}
+            >
+              <BookmarkIcon filled={saved} className="h-[18px] w-[18px]" />
+            </button>
             {!isOwner && (
               <button
                 onClick={toggleRepost}

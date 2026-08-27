@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { PostCard } from "@/components/PostCard";
-import { Avatar } from "@/components/Avatar";
 import { PhotographyTip } from "@/components/PhotographyTip";
 import { BrandMark } from "@/components/BrandMark";
 import { FollowButton } from "@/components/FollowButton";
 import { PeopleSuggestions, type SuggestedPerson } from "@/components/PeopleSuggestions";
-import { PlusSquareIcon, PolaroidCameraIcon, SearchIcon } from "@/components/Icons";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { BookmarkIcon, PlusSquareIcon, PolaroidCameraIcon, SearchIcon } from "@/components/Icons";
 import type { Post } from "@/types/post";
 
 type InspirationPost = {
@@ -33,11 +30,11 @@ type FeaturedPost = {
 };
 
 export default function FeedPage() {
-  const { data: session } = useSession();
   const [posts, setPosts] = useState<Post[]>([]);
   const [suggestedPeople, setSuggestedPeople] = useState<SuggestedPerson[]>([]);
   const [inspirationPosts, setInspirationPosts] = useState<InspirationPost[]>([]);
   const [featuredPosts, setFeaturedPosts] = useState<FeaturedPost[]>([]);
+  const [savedFramesCount, setSavedFramesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -58,8 +55,17 @@ export default function FeedPage() {
         setSuggestedPeople(data.suggestedPeople ?? []);
         setInspirationPosts(data.inspirationPosts ?? []);
         setFeaturedPosts(data.featuredPhotos ?? []);
+        setSavedFramesCount(data.savedFramesCount ?? 0);
       })
       .catch(() => {});
+
+    const handleSavedFramesChanged = (event: Event) => {
+      const detail = (event as CustomEvent<{ saved?: boolean }>).detail;
+      if (typeof detail?.saved !== "boolean") return;
+      setSavedFramesCount((count) => Math.max(0, count + (detail.saved ? 1 : -1)));
+    };
+    window.addEventListener("myclick:saved-frames-changed", handleSavedFramesChanged);
+    return () => window.removeEventListener("myclick:saved-frames-changed", handleSavedFramesChanged);
   }, []);
 
   function handleDeleted(id: string) {
@@ -114,6 +120,8 @@ export default function FeedPage() {
 
           {featuredPosts.length > 0 && <FeaturedPhotos posts={featuredPosts} />}
 
+          <SavedFramesShortcut count={savedFramesCount} className="mb-8 xl:hidden" />
+
           {loading && <FeedSkeleton />}
 
           {!loading && error && (
@@ -146,47 +154,7 @@ export default function FeedPage() {
         </main>
 
         <aside className="sticky top-[104px] hidden flex-col gap-4 xl:flex" aria-label="Photographer shortcuts">
-          <div className="rounded-3xl border border-white/[0.075] bg-white/[0.028] p-5 shadow-[0_22px_60px_-36px_rgba(0,0,0,0.9)]">
-            <div className="flex items-center gap-3">
-              <Avatar src={session?.user.avatarUrl} username={session?.user.username ?? "photographer"} size={46} />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-white">{session?.user.name ?? session?.user.username}</p>
-                <p className="flex min-w-0 items-center gap-1 text-xs text-white/35">
-                  <span className="truncate">@{session?.user.username}</span>
-                  <VerifiedBadge className="h-3 w-3" />
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              <Link href={`/profile/${session?.user.username}`} className="rounded-xl border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 text-center text-[11px] font-semibold text-white/60 transition hover:bg-white/[0.07] hover:text-white">
-                View profile
-              </Link>
-              <Link href="/upload" className="rounded-xl bg-red-600 px-3 py-2.5 text-center text-[11px] font-bold text-white transition hover:bg-red-500">
-                Publish
-              </Link>
-            </div>
-          </div>
-
-          <div className="overflow-hidden rounded-3xl border border-white/[0.075] bg-[#111115]">
-            <div className="relative h-32 overflow-hidden bg-[radial-gradient(circle_at_20%_25%,rgba(239,68,68,0.3),transparent_35%),linear-gradient(145deg,#241315,#0e1014_58%,#17151b)]">
-              <div className="absolute -right-5 -top-8 h-32 w-32 rounded-full border border-white/[0.06]" />
-              <div className="absolute -right-1 -top-3 h-20 w-20 rounded-full border border-white/[0.08]" />
-              <div className="absolute bottom-4 left-5 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/25">
-                <PolaroidCameraIcon className="h-5 w-5 text-red-400" />
-              </div>
-            </div>
-            <div className="p-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">Weekly frame</p>
-              <h2 className="mt-2 text-lg font-semibold tracking-[-0.025em] text-white">Reflections</h2>
-              <p className="mt-2 text-xs leading-5 text-white/42">
-                Find a reflection that changes the story—not just the symmetry. Share what caught your eye.
-              </p>
-              <Link href="/upload" className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-white/65 transition hover:text-white">
-                Take the prompt <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </div>
+          <SavedFramesShortcut count={savedFramesCount} />
 
           <PeopleSuggestions people={suggestedPeople} />
 
@@ -203,6 +171,27 @@ export default function FeedPage() {
         </aside>
       </div>
     </div>
+  );
+}
+
+function SavedFramesShortcut({ count, className = "" }: { count: number; className?: string }) {
+  return (
+    <section className={`relative overflow-hidden rounded-3xl border border-red-300/[0.12] bg-[radial-gradient(circle_at_92%_4%,rgba(239,68,68,0.17),transparent_34%),linear-gradient(145deg,rgba(40,19,27,0.86),rgba(16,16,20,0.96)_62%)] p-5 shadow-[0_22px_60px_-42px_rgba(0,0,0,0.96)] ${className}`}>
+      <div className="pointer-events-none absolute -right-6 -top-7 h-28 w-28 rounded-full border border-red-100/[0.09]" />
+      <div className="relative flex items-start gap-3.5">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200/[0.13] bg-red-500/10 text-red-300">
+          <BookmarkIcon filled className="h-[18px] w-[18px]" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-300/85">Your visual library</p>
+          <h2 className="mt-1 text-base font-semibold tracking-[-0.025em] text-white">Saved frames</h2>
+          <p className="mt-1.5 text-xs leading-5 text-white/45">Keep compositions, light, and stories that inspire your next shoot.</p>
+          <Link href="/saved" className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-white/75 transition hover:text-red-200">
+            Open {count} {count === 1 ? "saved frame" : "saved frames"} <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 

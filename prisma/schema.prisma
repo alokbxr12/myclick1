@@ -30,6 +30,7 @@ model User {
   posts        Post[]
   likes        Like[]
   reposts      Repost[]
+  savedPosts   SavedPost[]
   comments     Comment[]
   commentLikes CommentLike[]
   resetTokens  PasswordResetToken[]
@@ -78,6 +79,7 @@ model Post {
 
   likes    Like[]
   reposts  Repost[]
+  savedBy  SavedPost[]
   comments Comment[]
   images   PostImage[]
   featuredAppearances FeaturedPhoto[]
@@ -158,6 +160,22 @@ model Repost {
   @@index([userId, createdAt])
   @@index([postId])
   @@map("reposts")
+}
+
+model SavedPost {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
+  @@index([postId])
+  @@map("saved_posts")
 }
 
 model Comment {

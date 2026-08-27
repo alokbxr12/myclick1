@@ -38,6 +38,7 @@ export default async function ProfilePage({
           _count: { select: { likes: true, comments: true } },
           likes: { where: { userId: currentUserId }, select: { id: true } },
           reposts: { where: { userId: currentUserId }, select: { id: true } },
+          savedBy: { where: { userId: currentUserId }, select: { id: true } },
         },
       },
       _count: { select: { followers: true, following: true, posts: true } },
@@ -53,13 +54,14 @@ export default async function ProfilePage({
         where: { followerId_followingId: { followerId: currentUserId, followingId: user.id } },
       })) !== null;
 
-  const posts = user.posts.map(({ likes, reposts, ...post }) => ({
+  const posts = user.posts.map(({ likes, reposts, savedBy, ...post }) => ({
     ...post,
     createdAt: post.createdAt.toISOString(),
     author: { id: user.id, username: user.username, name: user.name, avatarUrl: user.avatarUrl, isFollowing },
     images: getPostImages(post),
     likedByMe: likes.length > 0,
     repostedByMe: reposts.length > 0,
+    savedByMe: savedBy.length > 0,
   }));
 
   return (
