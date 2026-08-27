@@ -52,12 +52,12 @@ export function ProfilePostsGrid({
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-1 mt-8 rounded-lg overflow-hidden">
+      <div className="mt-4 grid overflow-hidden rounded-[1.5rem] border border-white/[0.075] bg-white/[0.025] p-1.5 grid-cols-3 gap-1.5 shadow-[0_24px_70px_-48px_rgba(0,0,0,0.98)]">
         {posts.map((post, index) => (
           <button
             key={post.id}
             onClick={() => setOpenIndex(index)}
-            className="relative aspect-square bg-black/5 dark:bg-white/5 group overflow-hidden"
+            className="group relative aspect-square overflow-hidden rounded-xl bg-black/5 dark:bg-white/5"
           >
             <Image
               src={post.imageUrl}

@@ -32,8 +32,8 @@ export function ProfilePostTabs({
       : "No reposts yet.";
 
   return (
-    <section className="mt-8">
-      <div className="flex items-center justify-center gap-1 border-y border-black/10 px-2 dark:border-white/[0.09]" role="tablist" aria-label="Profile photographs">
+    <section className="mt-7">
+      <div className="flex items-center justify-center gap-1 rounded-2xl border border-white/[0.09] bg-[#101014]/82 px-2 shadow-[0_18px_50px_-38px_rgba(0,0,0,0.95)] backdrop-blur-xl" role="tablist" aria-label="Profile photographs">
         {tabs.filter((tab) => tab.visible).map(({ id, label, icon: Icon }) => {
           const active = activeTab === id;
           return (
@@ -45,7 +45,7 @@ export function ProfilePostTabs({
               aria-label={label}
               title={label}
               onClick={() => setActiveTab(id)}
-              className={`relative flex h-14 min-w-16 items-center justify-center px-5 transition ${
+              className={`relative flex h-12 min-w-16 items-center justify-center px-5 transition ${
                 active ? "text-red-400" : "text-black/40 hover:text-black/70 dark:text-white/38 dark:hover:text-white/75"
               }`}
             >

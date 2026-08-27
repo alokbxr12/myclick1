@@ -28,10 +28,12 @@ export function ProfileHeader({
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   return (
-    <div className="glass-panel flex flex-col items-stretch gap-5 rounded-2xl p-4 shadow-lg sm:flex-row sm:items-center sm:gap-6 sm:p-6">
+    <div className="relative flex flex-col items-stretch gap-5 overflow-hidden rounded-[2rem] border border-white/[0.09] bg-[radial-gradient(circle_at_94%_6%,rgba(241,91,101,0.18),transparent_32%),linear-gradient(135deg,rgba(20,20,27,0.97),rgba(13,14,19,0.93)_60%,rgba(40,19,27,0.86))] p-4 shadow-[0_28px_80px_-52px_rgba(0,0,0,0.98)] sm:flex-row sm:items-center sm:gap-6 sm:p-6">
+      <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full border border-white/[0.07]" />
+      <div className="pointer-events-none absolute right-8 top-6 h-20 w-20 rounded-full border border-red-200/[0.12]" />
       {/* Avatar with click-to-edit overlay when isMe */}
       <div
-        className={`relative shrink-0 self-center sm:self-auto ${isMe ? "cursor-pointer group" : ""}`}
+        className={`relative z-10 shrink-0 self-center sm:self-auto ${isMe ? "cursor-pointer group" : ""}`}
         onClick={() => isMe && setShowEditProfile(true)}
       >
         <Avatar src={user.avatarUrl} username={user.username} size={96} />
@@ -42,7 +44,7 @@ export function ProfileHeader({
         )}
       </div>
 
-      <div className="w-full min-w-0 flex-1">
+      <div className="relative z-10 w-full min-w-0 flex-1">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
             <div className="flex max-w-full min-w-0 items-center gap-1.5">
@@ -60,7 +62,7 @@ export function ProfileHeader({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setShowEditProfile(true)}
-                className="rounded-lg border border-black/15 px-3 py-1 text-xs font-medium transition-colors hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10 flex items-center gap-1.5"
+                className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.035] px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/[0.08]"
               >
                 <PencilIcon className="w-3.5 h-3.5" />
                 <span>Edit profile</span>
@@ -68,7 +70,7 @@ export function ProfileHeader({
               <button
                 onClick={() => setShowDeleteAccount(true)}
                 title="Delete Account"
-                className="rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 px-2.5 py-1 text-xs font-medium transition-colors flex items-center gap-1"
+                className="flex items-center gap-1 rounded-lg border border-red-400/30 bg-red-500/[0.04] px-2.5 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/10"
               >
                 <TrashIcon className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Delete Account</span>
