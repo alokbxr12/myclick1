@@ -13,7 +13,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   const [comments, following] = await Promise.all([
     prisma.comment.findMany({
       where: { postId },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         content: true,

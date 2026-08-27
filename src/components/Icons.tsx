@@ -27,6 +27,14 @@ export function ShareIcon({ className = "" }: { className?: string }) {
   );
 }
 
+export function ArrowUpIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className={className} aria-hidden>
+      <path d="M12 19V5M6.5 10.5 12 5l5.5 5.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function RepostIcon({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className} aria-hidden>

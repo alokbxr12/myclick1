@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { FollowButton } from "./FollowButton";
-import { BookmarkIcon, ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, RepostIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
+import { ArrowUpIcon, BookmarkIcon, ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, RepostIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { PostLikesModal } from "./PostLikesModal";
 import { formatCommentDateTime, formatPostDate } from "@/lib/formatPostDate";
@@ -92,7 +92,7 @@ export function PostCard({
     setBusy(false);
     if (res.ok) {
       const data = await res.json();
-      setComments((current) => [...current, data.comment]);
+      setComments((current) => [data.comment, ...current]);
       setCommentCount((count) => count + 1);
       setNewComment("");
     }
@@ -447,8 +447,14 @@ export function PostCard({
                 maxLength={1000}
                 className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs text-white outline-none placeholder:text-white/24"
               />
-              <button type="submit" disabled={busy || !newComment.trim()} className="rounded-lg bg-white/[0.08] px-3 py-2 text-[11px] font-semibold text-white/65 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-35">
-                Post
+              <button
+                type="submit"
+                disabled={busy || !newComment.trim()}
+                aria-label="Post comment"
+                title="Post comment"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ff7a64] to-[#ed466b] text-white shadow-[0_8px_18px_-10px_rgba(241,91,101,0.95)] transition hover:scale-[1.04] hover:from-[#ff8a70] hover:to-[#f05275] disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                <ArrowUpIcon className="h-4 w-4" />
               </button>
             </form>
           </div>
