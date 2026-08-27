@@ -7,7 +7,7 @@ import { PhotographyTip } from "@/components/PhotographyTip";
 import { BrandMark } from "@/components/BrandMark";
 import { FollowButton } from "@/components/FollowButton";
 import { PeopleSuggestions, type SuggestedPerson } from "@/components/PeopleSuggestions";
-import { BookmarkIcon, PlusSquareIcon, PolaroidCameraIcon, SearchIcon } from "@/components/Icons";
+import { PlusSquareIcon, PolaroidCameraIcon, SearchIcon } from "@/components/Icons";
 import type { Post } from "@/types/post";
 
 type InspirationPost = {
@@ -34,7 +34,6 @@ export default function FeedPage() {
   const [suggestedPeople, setSuggestedPeople] = useState<SuggestedPerson[]>([]);
   const [inspirationPosts, setInspirationPosts] = useState<InspirationPost[]>([]);
   const [featuredPosts, setFeaturedPosts] = useState<FeaturedPost[]>([]);
-  const [savedFramesCount, setSavedFramesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -55,17 +54,8 @@ export default function FeedPage() {
         setSuggestedPeople(data.suggestedPeople ?? []);
         setInspirationPosts(data.inspirationPosts ?? []);
         setFeaturedPosts(data.featuredPhotos ?? []);
-        setSavedFramesCount(data.savedFramesCount ?? 0);
       })
       .catch(() => {});
-
-    const handleSavedFramesChanged = (event: Event) => {
-      const detail = (event as CustomEvent<{ saved?: boolean }>).detail;
-      if (typeof detail?.saved !== "boolean") return;
-      setSavedFramesCount((count) => Math.max(0, count + (detail.saved ? 1 : -1)));
-    };
-    window.addEventListener("myclick:saved-frames-changed", handleSavedFramesChanged);
-    return () => window.removeEventListener("myclick:saved-frames-changed", handleSavedFramesChanged);
   }, []);
 
   function handleDeleted(id: string) {
@@ -120,8 +110,6 @@ export default function FeedPage() {
 
           {featuredPosts.length > 0 && <FeaturedPhotos posts={featuredPosts} />}
 
-          <SavedFramesShortcut count={savedFramesCount} className="mb-8 xl:hidden" />
-
           {loading && <FeedSkeleton />}
 
           {!loading && error && (
@@ -141,20 +129,22 @@ export default function FeedPage() {
                 <div className="contents" key={post.feedItemId ?? post.id}>
                   <PostCard post={post} onDeleted={handleDeleted} showOwnerMenu />
                   {index === 1 && posts.length > 2 && <PhotographyTip />}
+                  {index === 3 && posts.length > 4 && <CommunityInspiration inspirationPosts={inspirationPosts} className="xl:hidden" />}
+                  {index === 5 && posts.length > 6 && <PeopleSuggestions people={suggestedPeople} className="xl:hidden" />}
                 </div>
               ))}
             </div>
           )}
 
-          {!loading && !error && posts.length > 0 && <CommunityInspiration inspirationPosts={inspirationPosts} />}
+          {!loading && !error && posts.length > 0 && posts.length <= 4 && <CommunityInspiration inspirationPosts={inspirationPosts} className="mt-8 xl:hidden" />}
 
-          {!loading && !error && suggestedPeople.length > 0 && (
+          {!loading && !error && posts.length > 0 && posts.length <= 6 && suggestedPeople.length > 0 && (
             <PeopleSuggestions people={suggestedPeople} className="mt-8 xl:hidden" />
           )}
         </main>
 
         <aside className="sticky top-[104px] hidden flex-col gap-4 xl:flex" aria-label="Photographer shortcuts">
-          <SavedFramesShortcut count={savedFramesCount} />
+          <CommunityInspiration inspirationPosts={inspirationPosts} />
 
           <PeopleSuggestions people={suggestedPeople} />
 
@@ -171,27 +161,6 @@ export default function FeedPage() {
         </aside>
       </div>
     </div>
-  );
-}
-
-function SavedFramesShortcut({ count, className = "" }: { count: number; className?: string }) {
-  return (
-    <section className={`relative overflow-hidden rounded-3xl border border-red-300/[0.12] bg-[radial-gradient(circle_at_92%_4%,rgba(239,68,68,0.17),transparent_34%),linear-gradient(145deg,rgba(40,19,27,0.86),rgba(16,16,20,0.96)_62%)] p-5 shadow-[0_22px_60px_-42px_rgba(0,0,0,0.96)] ${className}`}>
-      <div className="pointer-events-none absolute -right-6 -top-7 h-28 w-28 rounded-full border border-red-100/[0.09]" />
-      <div className="relative flex items-start gap-3.5">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200/[0.13] bg-red-500/10 text-red-300">
-          <BookmarkIcon filled className="h-[18px] w-[18px]" />
-        </span>
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-300/85">Your visual library</p>
-          <h2 className="mt-1 text-base font-semibold tracking-[-0.025em] text-white">Saved frames</h2>
-          <p className="mt-1.5 text-xs leading-5 text-white/45">Keep compositions, light, and stories that inspire your next shoot.</p>
-          <Link href="/saved" className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-white/75 transition hover:text-red-200">
-            Open {count} {count === 1 ? "saved frame" : "saved frames"} <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -240,20 +209,20 @@ function EmptyFeed({ inspirationPosts }: { inspirationPosts: InspirationPost[] }
         </div>
       </div>
 
-      <CommunityInspiration inspirationPosts={inspirationPosts} embedded />
+      <CommunityInspiration inspirationPosts={inspirationPosts} embedded className="xl:hidden" />
     </div>
   );
 }
 
-function CommunityInspiration({ inspirationPosts, embedded = false }: { inspirationPosts: InspirationPost[]; embedded?: boolean }) {
+function CommunityInspiration({ inspirationPosts, embedded = false, className = "" }: { inspirationPosts: InspirationPost[]; embedded?: boolean; className?: string }) {
   if (inspirationPosts.length === 0) return null;
 
   return (
     <section
       aria-labelledby="community-inspiration-title"
-      className={embedded
+      className={`${embedded
         ? "border-t border-white/[0.065] px-4 pb-5 pt-5 sm:px-5 sm:pb-6"
-        : "overflow-hidden rounded-[2rem] border border-white/[0.075] bg-[#101014]/88 px-4 pb-5 pt-5 shadow-[0_28px_80px_-52px_rgba(0,0,0,0.98)] sm:px-5 sm:pb-6"}
+        : "overflow-hidden rounded-[2rem] border border-white/[0.075] bg-[#101014]/88 px-4 pb-5 pt-5 shadow-[0_28px_80px_-52px_rgba(0,0,0,0.98)] sm:px-5 sm:pb-6"} ${className}`}
     >
       <div className="mb-4 flex items-end justify-between gap-4 px-1">
         <div>

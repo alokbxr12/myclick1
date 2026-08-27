@@ -90,7 +90,7 @@ Visit http://localhost:3000 — you'll land on `/login`. Click "Create one" to r
 - **Forgot password** (`/forgot-password`, `/reset-password/[token]`) — emails a time-limited reset link via Gmail SMTP.
 - **Feed** (`/feed`) — shows posts and reposts from yourself and everyone you follow, plus a daily Featured Photos row selected from yesterday's top-liked uploads.
 - **Activity** (`/activity`) — shows likes, comments, reposts, and new followers, with an unread badge that clears when the activity feed is opened.
-- **Saved frames** (`/saved`) — a private library of posts bookmarked from the feed, profile, or post-detail view.
+- **Saved frames** — a private library of posts bookmarked from the feed, profile, or post-detail view, available as a tab on your own profile.
 - **Search** (`/search`) — find other users by username or name, and open their profile.
 - **Upload** (`/upload`) — pick a photo + caption, stored in local PostgreSQL.
 - **Profile** (`/profile/[username]`) — bio, photo grid, follower/following counts, and a Follow/Following button for other users.

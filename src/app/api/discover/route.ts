@@ -18,7 +18,7 @@ export async function GET() {
   const followingIds = new Set(following.map((relationship) => relationship.followingId));
   const suggestedPersonExclusions = [currentUserId, ...followingIds];
 
-  const [people, photoCandidates, featuredPhotos, savedFramesCount] = await Promise.all([
+  const [people, photoCandidates, featuredPhotos] = await Promise.all([
     prisma.user.findMany({
       where: { id: { notIn: suggestedPersonExclusions } },
       select: {
@@ -44,7 +44,6 @@ export async function GET() {
       },
     }),
     getDailyFeaturedPhotos(),
-    prisma.savedPost.count({ where: { userId: currentUserId } }),
   ]);
 
   const suggestedPeople = people
@@ -71,7 +70,6 @@ export async function GET() {
   return NextResponse.json({
     suggestedPeople,
     inspirationPosts,
-    savedFramesCount,
     featuredPhotos: featuredPhotos.map((post) => ({
       ...post,
       author: {

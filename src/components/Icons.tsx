@@ -45,6 +45,17 @@ export function BookmarkIcon({ filled = false, className = "" }: { filled?: bool
   );
 }
 
+export function GridIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className} aria-hidden>
+      <rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1" />
+      <rect x="14" y="3.5" width="6.5" height="6.5" rx="1" />
+      <rect x="3.5" y="14" width="6.5" height="6.5" rx="1" />
+      <rect x="14" y="14" width="6.5" height="6.5" rx="1" />
+    </svg>
+  );
+}
+
 export function MoreIcon({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>

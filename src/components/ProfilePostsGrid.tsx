@@ -6,7 +6,15 @@ import { PostCard } from "./PostCard";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "./Icons";
 import type { Post } from "@/types/post";
 
-export function ProfilePostsGrid({ posts: initialPosts }: { posts: Post[] }) {
+export function ProfilePostsGrid({
+  posts: initialPosts,
+  emptyMessage = "No posts yet.",
+  removeWhenUnsaved = false,
+}: {
+  posts: Post[];
+  emptyMessage?: string;
+  removeWhenUnsaved?: boolean;
+}) {
   const [posts, setPosts] = useState(initialPosts);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const openPost = openIndex !== null ? posts[openIndex] : null;
@@ -67,7 +75,7 @@ export function ProfilePostsGrid({ posts: initialPosts }: { posts: Post[] }) {
       </div>
 
       {posts.length === 0 && (
-        <p className="text-center text-sm text-black/60 dark:text-white/60 mt-10">No posts yet.</p>
+        <p className="mt-10 text-center text-sm text-black/60 dark:text-white/60">{emptyMessage}</p>
       )}
 
       {openPost && (
@@ -88,6 +96,11 @@ export function ProfilePostsGrid({ posts: initialPosts }: { posts: Post[] }) {
             <PostCard
               post={openPost}
               onDeleted={handleDeleted}
+              onSavedChange={(postId, saved) => {
+                if (!removeWhenUnsaved || saved) return;
+                setPosts((current) => current.filter((post) => post.id !== postId));
+                close();
+              }}
               showOwnerMenu
               imageOverlay={
                 <button
