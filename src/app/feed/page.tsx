@@ -5,7 +5,6 @@ import Link from "next/link";
 import { PostCard } from "@/components/PostCard";
 import { PhotographyTip } from "@/components/PhotographyTip";
 import { BrandMark } from "@/components/BrandMark";
-import { FollowButton } from "@/components/FollowButton";
 import { PeopleSuggestions, type SuggestedPerson } from "@/components/PeopleSuggestions";
 import { PlusSquareIcon, PolaroidCameraIcon, SearchIcon } from "@/components/Icons";
 import type { Post } from "@/types/post";
@@ -224,12 +223,11 @@ function CommunityInspiration({ inspirationPosts, embedded = false, className = 
         ? "border-t border-white/[0.065] px-4 pb-5 pt-5 sm:px-5 sm:pb-6"
         : "overflow-hidden rounded-[2rem] border border-white/[0.075] bg-[#101014]/88 px-4 pb-5 pt-5 shadow-[0_28px_80px_-52px_rgba(0,0,0,0.98)] sm:px-5 sm:pb-6"} ${className}`}
     >
-      <div className="mb-4 flex items-end justify-between gap-4 px-1">
+      <div className="mb-4 px-1">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">Made by the community</p>
-          <h3 id="community-inspiration-title" className="mt-1 text-base font-semibold tracking-[-0.025em] text-white">A little inspiration to begin</h3>
+          <h3 id="community-inspiration-title" className="mt-1 whitespace-nowrap text-[15px] font-semibold tracking-[-0.025em] text-white sm:text-base">A little inspiration to begin</h3>
         </div>
-        <span className="hidden text-[11px] text-white/34 sm:block">Open a frame to see the full story</span>
       </div>
       <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
         {inspirationPosts.map((post) => (
@@ -238,9 +236,6 @@ function CommunityInspiration({ inspirationPosts, embedded = false, className = 
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={post.imageUrl} alt={post.caption ?? `Photograph by ${post.author.username}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
             </Link>
-            <div className="absolute right-2 top-2 z-10">
-              <FollowButton compact initialFollowing={post.author.isFollowing} username={post.author.username} />
-            </div>
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/25 to-transparent px-3 pb-3 pt-9">
               <Link href={`/profile/${post.author.username}`} className="pointer-events-auto block min-w-0">
                 <p className="truncate text-[10px] font-semibold text-white transition hover:text-red-200">@{post.author.username}</p>
@@ -275,12 +270,6 @@ function FeaturedPhotos({ posts }: { posts: FeaturedPost[] }) {
             <span className="absolute left-2 top-2 flex h-7 min-w-7 items-center justify-center rounded-lg border border-amber-100/20 bg-black/45 px-1.5 text-[10px] font-bold text-amber-100 shadow-lg backdrop-blur-md">
               {String(post.rank).padStart(2, "0")}
             </span>
-
-            {!post.author.isOwn && (
-              <div className="absolute right-2 top-2 z-10">
-                <FollowButton compact initialFollowing={post.author.isFollowing} username={post.author.username} />
-              </div>
-            )}
 
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/90 via-black/42 to-transparent px-2.5 pb-2.5 pt-10 sm:px-3 sm:pb-3">
               <Link href={`/profile/${post.author.username}`} className="pointer-events-auto block min-w-0">
