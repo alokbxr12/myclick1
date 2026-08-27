@@ -79,52 +79,48 @@ export function ProfilePostsGrid({
       )}
 
       {openPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8" onClick={close}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              showPrev();
-            }}
-            disabled={!hasPrev}
-            aria-label="Previous photo"
-            className="fixed left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-opacity hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-25 sm:left-4 sm:h-11 sm:w-11"
-          >
-            <ChevronLeftIcon className="w-6 h-6" />
-          </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/78 px-3 py-4 backdrop-blur-sm sm:px-8 sm:py-8" onClick={close} role="dialog" aria-modal="true" aria-label="Photograph viewer">
+          <div className="relative flex w-full max-w-2xl items-center justify-center" onClick={(event) => event.stopPropagation()}>
+            <button
+              onClick={showPrev}
+              disabled={!hasPrev}
+              aria-label="Previous photo"
+              className="absolute left-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white shadow-lg transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-25 sm:-left-14 sm:h-11 sm:w-11"
+            >
+              <ChevronLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
 
-          <div className="w-full max-w-md max-h-full overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <PostCard
-              post={openPost}
-              onDeleted={handleDeleted}
-              onSavedChange={(postId, saved) => {
-                if (!removeWhenUnsaved || saved) return;
-                setPosts((current) => current.filter((post) => post.id !== postId));
-                close();
-              }}
-              showOwnerMenu
-              imageOverlay={
-                <button
-                  onClick={close}
-                  aria-label="Close"
-                  className="absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-black/50 text-white hover:bg-black/70"
-                >
-                  <CloseIcon className="w-5 h-5" />
-                </button>
-              }
-            />
+            <div className="custom-scrollbar max-h-[calc(100vh-2rem)] w-full overflow-y-auto rounded-[1.75rem] shadow-[0_32px_100px_-38px_rgba(0,0,0,1)] sm:max-h-[calc(100vh-4rem)]">
+              <PostCard
+                post={openPost}
+                onDeleted={handleDeleted}
+                onSavedChange={(postId, saved) => {
+                  if (!removeWhenUnsaved || saved) return;
+                  setPosts((current) => current.filter((post) => post.id !== postId));
+                  close();
+                }}
+                showOwnerMenu
+                imageOverlay={
+                  <button
+                    onClick={close}
+                    aria-label="Close"
+                    className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/55 text-white transition hover:bg-black/80"
+                  >
+                    <CloseIcon className="h-5 w-5" />
+                  </button>
+                }
+              />
+            </div>
+
+            <button
+              onClick={showNext}
+              disabled={!hasNext}
+              aria-label="Next photo"
+              className="absolute right-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white shadow-lg transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-25 sm:-right-14 sm:h-11 sm:w-11"
+            >
+              <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
           </div>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              showNext();
-            }}
-            disabled={!hasNext}
-            aria-label="Next photo"
-            className="fixed right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-opacity hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-25 sm:right-4 sm:h-11 sm:w-11"
-          >
-            <ChevronRightIcon className="w-6 h-6" />
-          </button>
         </div>
       )}
     </>

@@ -91,8 +91,6 @@ export default async function ProfilePage({
 
   return (
     <main className="app-profile-bg relative min-h-[calc(100vh-72px)] overflow-hidden pb-28 md:pb-12">
-      <div className="pointer-events-none absolute -left-28 top-16 h-80 w-80 rounded-full bg-red-500/[0.07] blur-3xl" />
-      <div className="pointer-events-none absolute -right-28 top-72 h-72 w-72 rounded-full bg-orange-400/[0.045] blur-3xl" />
       <div className="relative mx-auto max-w-2xl px-4 py-7 sm:px-6 sm:py-10">
         <ProfileHeader user={user} isMe={isMe} isFollowing={isFollowing} />
 

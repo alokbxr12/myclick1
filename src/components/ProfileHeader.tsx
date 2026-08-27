@@ -28,9 +28,7 @@ export function ProfileHeader({
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   return (
-    <div className="relative flex flex-col items-stretch gap-5 overflow-hidden rounded-[2rem] border border-white/[0.09] bg-[radial-gradient(circle_at_94%_6%,rgba(241,91,101,0.18),transparent_32%),linear-gradient(135deg,rgba(20,20,27,0.97),rgba(13,14,19,0.93)_60%,rgba(40,19,27,0.86))] p-4 shadow-[0_28px_80px_-52px_rgba(0,0,0,0.98)] sm:flex-row sm:items-center sm:gap-6 sm:p-6">
-      <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full border border-white/[0.07]" />
-      <div className="pointer-events-none absolute right-8 top-6 h-20 w-20 rounded-full border border-red-200/[0.12]" />
+    <div className="relative flex flex-col items-stretch gap-5 rounded-[1.75rem] border border-white/[0.075] bg-[#101114]/92 p-4 shadow-[0_24px_70px_-52px_rgba(0,0,0,0.98)] sm:flex-row sm:items-center sm:gap-6 sm:p-6">
       {/* Avatar with click-to-edit overlay when isMe */}
       <div
         className={`relative z-10 shrink-0 self-center sm:self-auto ${isMe ? "cursor-pointer group" : ""}`}

@@ -36,12 +36,8 @@ body {
 
 .app-profile-bg {
   background:
-    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-    radial-gradient(circle at 14% -10%, rgba(241, 91, 101, 0.2), transparent 34%),
-    radial-gradient(circle at 88% 16%, rgba(255, 145, 93, 0.1), transparent 30%),
-    linear-gradient(180deg, #0c0c12 0%, #08090b 38%, #06070a 100%);
-  background-size: 42px 42px, 42px 42px, auto, auto, auto;
+    radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.045), transparent 44%),
+    linear-gradient(180deg, #0b0c10 0%, #08090b 48%, #07080a 100%);
 }
 
 .feed-hero {
