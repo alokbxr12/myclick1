@@ -78,14 +78,14 @@ export function FollowListModal({
           {users?.map((user) => (
             <div
               key={user.id}
-              className="mb-2 flex min-h-[76px] items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-3.5 py-3 transition hover:border-red-300/20 hover:bg-red-500/[0.045]"
+              className="mb-2 flex min-w-0 items-center gap-2.5 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-3 py-3 transition hover:border-red-300/20 hover:bg-red-500/[0.045] sm:min-h-[76px] sm:gap-3 sm:px-3.5"
             >
               <Link
                 href={`/profile/${user.username}`}
                 onClick={onClose}
                 className="flex min-w-0 flex-1 items-center gap-3"
               >
-                <Avatar src={user.avatarUrl} username={user.username} size={44} className="ring-red-300/20" />
+                <Avatar src={user.avatarUrl} username={user.username} size={40} className="ring-red-300/20" />
                 <div className="min-w-0">
                   <p className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-white">
                     <span className="truncate">{user.username}</span>
@@ -97,7 +97,7 @@ export function FollowListModal({
                 </div>
               </Link>
               {!user.isMe && (
-                <FollowButton username={user.username} initialFollowing={user.isFollowing} />
+                <FollowButton compact username={user.username} initialFollowing={user.isFollowing} />
               )}
             </div>
           ))}

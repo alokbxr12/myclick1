@@ -28,10 +28,10 @@ export function ProfileHeader({
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   return (
-    <div className="relative flex items-start gap-4 rounded-[1.75rem] border border-white/[0.075] bg-[#101114]/92 p-4 shadow-[0_24px_70px_-52px_rgba(0,0,0,0.98)] sm:gap-6 sm:p-6">
+    <div className="relative grid grid-cols-[84px_minmax(0,1fr)] items-start gap-x-4 gap-y-4 rounded-[1.75rem] border border-white/[0.075] bg-[#101114]/92 p-4 shadow-[0_24px_70px_-52px_rgba(0,0,0,0.98)] sm:grid-cols-[96px_minmax(0,1fr)] sm:gap-x-6 sm:p-6">
       {/* Avatar with click-to-edit overlay when isMe */}
       <div
-        className={`relative z-10 flex w-[84px] shrink-0 flex-col items-center gap-2 sm:w-24 ${isMe ? "cursor-pointer group" : ""}`}
+        className={`relative z-10 flex w-[84px] flex-col items-center gap-2 sm:w-24 ${isMe ? "cursor-pointer group" : ""}`}
         onClick={() => isMe && setShowEditProfile(true)}
       >
         <div className="relative">
@@ -45,8 +45,8 @@ export function ProfileHeader({
         {user.name && <p className="w-full truncate text-center text-xs font-medium text-white/68">{user.name}</p>}
       </div>
 
-      <div className="relative z-10 w-full min-w-0 flex-1">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="relative z-10 min-w-0">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
             <div className="flex max-w-full min-w-0 items-center gap-1.5">
               <h1 className="min-w-0 truncate text-lg font-semibold">{user.username}</h1>
@@ -80,13 +80,15 @@ export function ProfileHeader({
           )}
         </div>
 
+      </div>
+
+      <div className="relative z-10 col-span-2 min-w-0 sm:col-start-2 sm:col-span-1">
         <ProfileStats
           username={user.username}
           posts={user._count.posts}
           followers={user._count.followers}
           following={user._count.following}
         />
-
         {user.bio && <p className="mt-0.5 whitespace-pre-line break-words text-sm text-black/70 dark:text-white/70">{user.bio}</p>}
       </div>
 
