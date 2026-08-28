@@ -40,34 +40,37 @@ export function FollowListModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#040406]/78 p-3 backdrop-blur-md sm:p-5"
       onClick={onClose}
     >
       <div
-        className="glass-panel w-full max-w-sm max-h-[85dvh] rounded-2xl shadow-xl overflow-hidden flex flex-col"
+        className="flex max-h-[85dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.75rem] border border-white/[0.1] bg-[#101014]/98 shadow-[0_30px_100px_-32px_rgba(0,0,0,1)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-black/10 dark:border-white/10">
-          <h2 className="font-semibold capitalize">{type}</h2>
+        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.07] bg-[radial-gradient(circle_at_0%_0%,rgba(241,91,101,0.13),transparent_42%)] px-5 py-4 sm:px-6">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-300/85">Profile circle</p>
+            <h2 className="mt-1 text-lg font-semibold capitalize text-white">{type}</h2>
+          </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="shrink-0 text-lg leading-none rounded-full w-7 h-7 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.045] text-lg leading-none text-white/70 transition hover:bg-white/[0.1] hover:text-white"
           >
             ✕
           </button>
         </div>
 
         <div
-          className="custom-scrollbar overflow-y-auto min-h-0 max-h-[204px]"
+          className="custom-scrollbar min-h-0 max-h-[min(34rem,66dvh)] overflow-y-auto p-2.5 sm:p-3"
           style={{ overscrollBehavior: "contain" }}
         >
           {users === null && (
-            <p className="text-sm text-center text-black/60 dark:text-white/60 py-8">Loading…</p>
+            <p className="py-12 text-center text-sm text-white/48">Loading…</p>
           )}
 
           {users !== null && users.length === 0 && (
-            <p className="text-sm text-center text-black/60 dark:text-white/60 py-8">
+            <p className="py-12 text-center text-sm text-white/48">
               No {type} yet.
             </p>
           )}
@@ -75,21 +78,21 @@ export function FollowListModal({
           {users?.map((user) => (
             <div
               key={user.id}
-              className="flex items-center gap-3 px-4 py-3 min-h-[68px] hover:bg-black/5 dark:hover:bg-white/5"
+              className="mb-2 flex min-h-[76px] items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-3.5 py-3 transition hover:border-red-300/20 hover:bg-red-500/[0.045]"
             >
               <Link
                 href={`/profile/${user.username}`}
                 onClick={onClose}
-                className="flex items-center gap-3 flex-1 min-w-0"
+                className="flex min-w-0 flex-1 items-center gap-3"
               >
-                <Avatar src={user.avatarUrl} username={user.username} size={40} />
+                <Avatar src={user.avatarUrl} username={user.username} size={44} className="ring-red-300/20" />
                 <div className="min-w-0">
-                  <p className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                  <p className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-white">
                     <span className="truncate">{user.username}</span>
                     <VerifiedBadge className="h-3.5 w-3.5" />
                   </p>
                   {user.name && (
-                    <p className="text-xs text-black/60 dark:text-white/60 truncate">{user.name}</p>
+                    <p className="mt-0.5 truncate text-xs text-white/42">{user.name}</p>
                   )}
                 </div>
               </Link>

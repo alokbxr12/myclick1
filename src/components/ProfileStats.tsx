@@ -18,24 +18,24 @@ export function ProfileStats({
 
   return (
     <>
-      <div className="mb-3 grid w-full grid-cols-3 gap-2 text-center text-xs sm:flex sm:w-auto sm:gap-6 sm:text-left sm:text-sm">
-        <span className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2 sm:block sm:bg-transparent sm:p-0">
-          <strong className="text-white">{posts}</strong>{" "}
-          <span className="text-white/48">posts</span>
+      <div className="mb-4 grid w-full grid-cols-3 gap-1.5 rounded-2xl border border-white/[0.07] bg-black/15 p-1.5 text-center">
+        <span className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2.5 transition sm:hover:bg-white/[0.055]">
+          <strong className="text-sm text-white">{posts}</strong>
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-white/40">Posts</span>
         </span>
         <button
           onClick={() => setModal("followers")}
-          className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2 hover:bg-white/[0.065] sm:block sm:bg-transparent sm:p-0 sm:hover:bg-transparent sm:hover:underline"
+          className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2.5 transition hover:bg-red-500/[0.09] hover:text-white"
         >
-          <strong className="text-white">{followers}</strong>{" "}
-          <span className="text-white/48">followers</span>
+          <strong className="text-sm text-white">{followers}</strong>
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-white/40">Followers</span>
         </button>
         <button
           onClick={() => setModal("following")}
-          className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2 hover:bg-white/[0.065] sm:block sm:bg-transparent sm:p-0 sm:hover:bg-transparent sm:hover:underline"
+          className="flex min-w-0 flex-col rounded-xl bg-white/[0.035] px-2 py-2.5 transition hover:bg-red-500/[0.09] hover:text-white"
         >
-          <strong className="text-white">{following}</strong>{" "}
-          <span className="text-white/48">following</span>
+          <strong className="text-sm text-white">{following}</strong>
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-white/40">Following</span>
         </button>
       </div>
 

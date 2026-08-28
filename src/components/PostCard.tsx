@@ -467,7 +467,7 @@ export function PostCard({
             </div>
 
             <form onSubmit={submitComment} className="mt-4 flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] p-1.5 focus-within:border-white/15">
-              <MentionInput value={newComment} onChange={setNewComment} placeholder="Share what caught your eye… Use @ to mention" maxLength={1000} className="min-w-0 w-full bg-transparent px-2 py-2 text-xs text-white outline-none placeholder:text-white/24" />
+              <MentionInput value={newComment} onChange={setNewComment} placeholder="Share what caught your eye… Use @ to mention" maxLength={1000} menuPlacement="top" className="min-w-0 w-full bg-transparent px-2 py-2 text-xs text-white outline-none placeholder:text-white/24" />
               <button
                 type="submit"
                 disabled={busy || !newComment.trim()}

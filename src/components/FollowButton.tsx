@@ -47,8 +47,8 @@ export function FollowButton({
           : compact
             ? "rounded-lg bg-gradient-to-r from-[#f15b65] to-[#ed466b] px-2.5 py-1.5 text-[11px] font-bold text-white shadow-[0_8px_18px_-12px_rgba(241,91,101,0.95)] transition hover:-translate-y-px disabled:opacity-50"
           : following
-          ? "rounded-md border border-black/15 dark:border-white/20 px-4 py-1.5 text-sm font-medium"
-          : "rounded-md bg-foreground text-background px-4 py-1.5 text-sm font-medium disabled:opacity-50"
+          ? "rounded-xl border border-white/15 bg-white/[0.045] px-4 py-2 text-sm font-semibold text-white/72 shadow-[0_10px_24px_-20px_rgba(0,0,0,0.9)] transition hover:bg-white/[0.09] hover:text-white disabled:opacity-50"
+          : "rounded-xl border border-red-200/20 bg-gradient-to-r from-[#f15b65] to-[#ed466b] px-4 py-2 text-sm font-bold text-white shadow-[0_12px_26px_-15px_rgba(241,91,101,0.95)] transition hover:-translate-y-px hover:brightness-110 disabled:opacity-50"
       }
     >
       {following ? "Following" : "Follow"}
