@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CloseIcon, UploadCloudIcon } from "@/components/Icons";
+import { CameraDetailsFields } from "@/components/CameraDetailsFields";
 import { ImageCropModal } from "@/components/ImageCropModal";
 import { getImageUploadError, MAX_IMAGES_PER_POST, MAX_POST_IMAGE_BYTES } from "@/lib/image-upload-constraints";
 
@@ -12,6 +13,55 @@ type UploadImage = {
   preview: string;
 };
 
+type MetadataStatus = "reading" | "found" | "unavailable" | "idle";
+
+function textValue(value: unknown) {
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return "";
+}
+
+function compactNumber(value: number) {
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(1)));
+}
+
+function formatFocalLength(value: unknown) {
+  const text = textValue(value);
+  if (!text) return "";
+  const numeric = Number(text);
+  return Number.isFinite(numeric) ? `${compactNumber(numeric)}mm` : text.includes("mm") ? text : `${text}mm`;
+}
+
+function formatAperture(value: unknown) {
+  const text = textValue(value);
+  if (!text) return "";
+  const numeric = Number(text);
+  return Number.isFinite(numeric) ? `f/${compactNumber(numeric)}` : text.toLowerCase().startsWith("f/") ? text : `f/${text}`;
+}
+
+function formatShutterSpeed(value: unknown) {
+  const text = textValue(value);
+  if (!text) return "";
+  const numeric = Number(text);
+  if (!Number.isFinite(numeric) || numeric <= 0) return text.endsWith("s") ? text : `${text}s`;
+  if (numeric >= 1) return `${compactNumber(numeric)}s`;
+  return `1/${Math.round(1 / numeric)}s`;
+}
+
+function formatIso(value: unknown) {
+  const text = textValue(value);
+  if (!text) return "";
+  return text.toUpperCase().startsWith("ISO") ? text : `ISO ${text}`;
+}
+
+function formatCameraModel(make: unknown, model: unknown) {
+  const cameraMake = textValue(make);
+  const cameraModel = textValue(model);
+  if (!cameraMake) return cameraModel;
+  if (!cameraModel || cameraModel.toLowerCase().startsWith(cameraMake.toLowerCase())) return cameraModel || cameraMake;
+  return `${cameraMake} ${cameraModel}`;
+}
+
 export default function UploadPage() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -19,6 +69,7 @@ export default function UploadPage() {
   const [cropTargetId, setCropTargetId] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [cameraModel, setCameraModel] = useState("");
+  const [lensModel, setLensModel] = useState("");
   const [focalLength, setFocalLength] = useState("");
   const [aperture, setAperture] = useState("");
   const [shutterSpeed, setShutterSpeed] = useState("");
@@ -26,9 +77,35 @@ export default function UploadPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [metadataStatus, setMetadataStatus] = useState<MetadataStatus>("idle");
 
   const cropTarget = images.find((image) => image.id === cropTargetId) ?? null;
   const totalBytes = images.reduce((total, image) => total + image.file.size, 0);
+
+  async function prefillCameraDetails(file: File) {
+    setMetadataStatus("reading");
+    try {
+      const exifr = await import("exifr");
+      const metadata = await exifr.parse(file, ["Make", "Model", "LensModel", "FocalLength", "FNumber", "ExposureTime", "ISO"]);
+      const camera = formatCameraModel(metadata?.Make, metadata?.Model);
+      const lens = textValue(metadata?.LensModel);
+      const focal = formatFocalLength(metadata?.FocalLength);
+      const apertureValue = formatAperture(metadata?.FNumber);
+      const shutter = formatShutterSpeed(metadata?.ExposureTime);
+      const isoValue = formatIso(metadata?.ISO);
+      const hasMetadata = Boolean(camera || lens || focal || apertureValue || shutter || isoValue);
+
+      if (camera) setCameraModel((current) => current || camera);
+      if (lens) setLensModel((current) => current || lens);
+      if (focal) setFocalLength((current) => current || focal);
+      if (apertureValue) setAperture((current) => current || apertureValue);
+      if (shutter) setShutterSpeed((current) => current || shutter);
+      if (isoValue) setIso((current) => current || isoValue);
+      setMetadataStatus(hasMetadata ? "found" : "unavailable");
+    } catch {
+      setMetadataStatus("unavailable");
+    }
+  }
 
   function addFiles(selectedFiles: FileList | File[]) {
     const files = Array.from(selectedFiles);
@@ -49,7 +126,10 @@ export default function UploadPage() {
       accepted.push({ id: crypto.randomUUID(), file, preview: URL.createObjectURL(file) });
     }
 
-    if (accepted.length > 0) setImages((current) => [...current, ...accepted]);
+    if (accepted.length > 0) {
+      setImages((current) => [...current, ...accepted]);
+      void prefillCameraDetails(accepted[0].file);
+    }
     if (files.length > availableSlots) {
       setError(`Only the first ${availableSlots} photo${availableSlots === 1 ? "" : "s"} could be added. A post can contain up to ${MAX_IMAGES_PER_POST}.`);
     } else {
@@ -110,6 +190,7 @@ export default function UploadPage() {
     images.forEach((image) => formData.append("images", image.file));
     formData.append("caption", caption);
     formData.append("cameraModel", cameraModel);
+    formData.append("lensModel", lensModel);
     formData.append("focalLength", focalLength);
     formData.append("aperture", aperture);
     formData.append("shutterSpeed", shutterSpeed);
@@ -181,18 +262,21 @@ export default function UploadPage() {
 
           <textarea placeholder="Write a caption…" value={caption} maxLength={2000} onChange={(event) => setCaption(event.target.value)} rows={3} className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.035] px-3.5 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-red-400/70 focus:ring-2 focus:ring-red-500/15" />
 
-          <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
-            <p className="text-xs font-semibold text-white/68">Camera details <span className="font-normal text-white/35">(optional)</span></p>
-            <div className="mt-3 flex flex-col gap-2">
-              <input value={cameraModel} onChange={(event) => setCameraModel(event.target.value)} placeholder="Camera (e.g. Sony α7 IV)" className="w-full rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/20" />
-              <div className="grid grid-cols-3 gap-2">
-                <input value={focalLength} onChange={(event) => setFocalLength(event.target.value)} placeholder="50mm" className="min-w-0 rounded-lg border border-white/10 bg-white/[0.035] px-2 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/20" />
-                <input value={aperture} onChange={(event) => setAperture(event.target.value)} placeholder="f/1.8" className="min-w-0 rounded-lg border border-white/10 bg-white/[0.035] px-2 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/20" />
-                <input value={shutterSpeed} onChange={(event) => setShutterSpeed(event.target.value)} placeholder="1/1000s" className="min-w-0 rounded-lg border border-white/10 bg-white/[0.035] px-2 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/20" />
-              </div>
-              <input value={iso} onChange={(event) => setIso(event.target.value)} placeholder="ISO 100" className="w-full rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/20" />
-            </div>
-          </div>
+          <CameraDetailsFields
+            cameraModel={cameraModel}
+            setCameraModel={setCameraModel}
+            lensModel={lensModel}
+            setLensModel={setLensModel}
+            focalLength={focalLength}
+            setFocalLength={setFocalLength}
+            aperture={aperture}
+            setAperture={setAperture}
+            shutterSpeed={shutterSpeed}
+            setShutterSpeed={setShutterSpeed}
+            iso={iso}
+            setIso={setIso}
+            metadataStatus={metadataStatus}
+          />
 
           {error && <p className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2.5 text-xs text-red-200" role="alert">{error}</p>}
 

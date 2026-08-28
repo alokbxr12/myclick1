@@ -19,6 +19,7 @@ export type Post = {
   imageUrl: string;
   createdAt: string;
   cameraModel: string | null;
+  lensModel: string | null;
   focalLength: string | null;
   aperture: string | null;
   shutterSpeed: string | null;

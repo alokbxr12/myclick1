@@ -69,6 +69,7 @@ model Post {
 
   // optional camera/shot details shown under the photo
   cameraModel  String?
+  lensModel    String?
   focalLength  String?
   aperture     String?
   shutterSpeed String?

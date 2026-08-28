@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
+import { CameraDetailsFields } from "./CameraDetailsFields";
 import { FollowButton } from "./FollowButton";
 import { ArrowUpIcon, BookmarkIcon, ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, RepostIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -37,6 +38,7 @@ export function PostCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [caption, setCaption] = useState(post.caption ?? "");
   const [cameraModel, setCameraModel] = useState(post.cameraModel ?? "");
+  const [lensModel, setLensModel] = useState(post.lensModel ?? "");
   const [focalLength, setFocalLength] = useState(post.focalLength ?? "");
   const [aperture, setAperture] = useState(post.aperture ?? "");
   const [shutterSpeed, setShutterSpeed] = useState(post.shutterSpeed ?? "");
@@ -51,7 +53,7 @@ export function PostCard({
   const [commentLikeBusy, setCommentLikeBusy] = useState<string | null>(null);
 
   const isOwner = session?.user?.id === post.author.id;
-  const hasExif = post.cameraModel || post.focalLength || post.aperture || post.shutterSpeed || post.iso;
+  const hasExif = post.cameraModel || post.lensModel || post.focalLength || post.aperture || post.shutterSpeed || post.iso;
   const postImages = post.images.length > 0 ? post.images : [{ id: `legacy-${post.id}`, imageUrl: post.imageUrl, sortOrder: 0 }];
   const [selectedImage, setSelectedImage] = useState({ postId: post.id, index: 0 });
   const activeImageIndex = selectedImage.postId === post.id ? Math.min(selectedImage.index, postImages.length - 1) : 0;
@@ -119,7 +121,7 @@ export function PostCard({
     const res = await fetch(`/api/posts/${post.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ caption, cameraModel, focalLength, aperture, shutterSpeed, iso }),
+      body: JSON.stringify({ caption, cameraModel, lensModel, focalLength, aperture, shutterSpeed, iso }),
     });
     setBusy(false);
     if (res.ok) setEditing(false);
@@ -362,6 +364,11 @@ export function PostCard({
                 {post.cameraModel}
               </span>
             )}
+            {post.lensModel && (
+              <span className="inline-flex max-w-full items-center rounded-lg border border-white/[0.055] px-2.5 py-1.5 text-[10px] font-medium text-white/50">
+                <span className="truncate">Lens · {post.lensModel}</span>
+              </span>
+            )}
             {[post.focalLength, post.aperture, post.shutterSpeed, post.iso].filter(Boolean).map((spec) => (
               <span key={spec} className="rounded-lg border border-white/[0.055] px-2.5 py-1.5 font-mono text-[10px] text-white/38">
                 {spec}
@@ -377,6 +384,8 @@ export function PostCard({
               setCaption={setCaption}
               cameraModel={cameraModel}
               setCameraModel={setCameraModel}
+              lensModel={lensModel}
+              setLensModel={setLensModel}
               focalLength={focalLength}
               setFocalLength={setFocalLength}
               aperture={aperture}
@@ -474,6 +483,8 @@ function EditPostForm({
   setCaption,
   cameraModel,
   setCameraModel,
+  lensModel,
+  setLensModel,
   focalLength,
   setFocalLength,
   aperture,
@@ -490,6 +501,8 @@ function EditPostForm({
   setCaption: (value: string) => void;
   cameraModel: string;
   setCameraModel: (value: string) => void;
+  lensModel: string;
+  setLensModel: (value: string) => void;
   focalLength: string;
   setFocalLength: (value: string) => void;
   aperture: string;
@@ -507,13 +520,21 @@ function EditPostForm({
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.065] bg-black/15 p-3.5">
       <textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={3} maxLength={2000} placeholder="Write about this photograph…" className={`${inputClass} resize-none`} />
-      <div className="grid grid-cols-2 gap-2">
-        <input value={cameraModel} onChange={(e) => setCameraModel(e.target.value)} placeholder="Camera model" className={`${inputClass} col-span-2`} />
-        <input value={focalLength} onChange={(e) => setFocalLength(e.target.value)} placeholder="50mm" className={inputClass} />
-        <input value={aperture} onChange={(e) => setAperture(e.target.value)} placeholder="f/1.8" className={inputClass} />
-        <input value={shutterSpeed} onChange={(e) => setShutterSpeed(e.target.value)} placeholder="1/1000s" className={inputClass} />
-        <input value={iso} onChange={(e) => setIso(e.target.value)} placeholder="ISO 100" className={inputClass} />
-      </div>
+      <CameraDetailsFields
+        compact
+        cameraModel={cameraModel}
+        setCameraModel={setCameraModel}
+        lensModel={lensModel}
+        setLensModel={setLensModel}
+        focalLength={focalLength}
+        setFocalLength={setFocalLength}
+        aperture={aperture}
+        setAperture={setAperture}
+        shutterSpeed={shutterSpeed}
+        setShutterSpeed={setShutterSpeed}
+        iso={iso}
+        setIso={setIso}
+      />
       <div className="flex gap-2 pt-1">
         <button onClick={onSave} disabled={busy} className="rounded-lg bg-red-600 px-4 py-2 text-[11px] font-bold text-white transition hover:bg-red-500 disabled:opacity-50">
           {busy ? "Saving…" : "Save changes"}

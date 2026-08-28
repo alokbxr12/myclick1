@@ -10,6 +10,7 @@ const POST_SELECT = {
   imageUrl: true,
   createdAt: true,
   cameraModel: true,
+  lensModel: true,
   focalLength: true,
   aperture: true,
   shutterSpeed: true,

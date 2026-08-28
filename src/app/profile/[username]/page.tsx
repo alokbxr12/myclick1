@@ -11,6 +11,7 @@ const POST_SELECT = {
   caption: true,
   createdAt: true,
   cameraModel: true,
+  lensModel: true,
   focalLength: true,
   aperture: true,
   shutterSpeed: true,

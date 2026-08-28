@@ -11,6 +11,7 @@ const POST_SELECT = {
   createdAt: true,
   authorId: true,
   cameraModel: true,
+  lensModel: true,
   focalLength: true,
   aperture: true,
   shutterSpeed: true,
@@ -81,6 +82,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     data: {
       caption: typeof caption === "string" && caption.trim() ? caption.trim() : null,
       cameraModel: readOptionalField(body?.cameraModel, 60),
+      lensModel: readOptionalField(body?.lensModel, 120),
       focalLength: readOptionalField(body?.focalLength, 20),
       aperture: readOptionalField(body?.aperture, 20),
       shutterSpeed: readOptionalField(body?.shutterSpeed, 20),
