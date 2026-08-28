@@ -82,7 +82,7 @@ export function ProfileHeader({
 
       </div>
 
-      <div className="relative z-10 col-span-2 min-w-0 sm:col-start-2 sm:col-span-1">
+      <div className="relative z-10 col-span-2 min-w-0 sm:col-start-1 sm:col-span-2 sm:w-full sm:max-w-[34rem] sm:justify-self-start">
         <ProfileStats
           username={user.username}
           posts={user._count.posts}
