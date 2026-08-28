@@ -12,6 +12,13 @@ export type PostImage = {
   sortOrder: number;
 };
 
+export type TaggedPhotographer = {
+  id: string;
+  username: string;
+  name: string | null;
+  avatarUrl: string | null;
+};
+
 export type Post = {
   id: string;
   feedItemId?: string;
@@ -25,6 +32,8 @@ export type Post = {
   shutterSpeed: string | null;
   iso: string | null;
   author: PostAuthor;
+  tags: TaggedPhotographer[];
+  collaborators: TaggedPhotographer[];
   images: PostImage[];
   _count: { likes: number; comments: number };
   likedByMe: boolean;

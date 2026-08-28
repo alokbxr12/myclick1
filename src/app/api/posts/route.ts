@@ -5,6 +5,7 @@ import { saveUploadedImage } from "@/lib/upload";
 import { deleteUploadedImage } from "@/lib/upload";
 import { getImageUploadError, MAX_IMAGES_PER_POST, MAX_POST_IMAGE_BYTES } from "@/lib/image-upload-constraints";
 import { getPostImages } from "@/lib/post-images";
+import { extractMentionedUsernames } from "@/lib/mentions";
 
 const POST_SELECT = {
   id: true,
@@ -18,6 +19,11 @@ const POST_SELECT = {
   shutterSpeed: true,
   iso: true,
   author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+  tags: { select: { user: { select: { id: true, username: true, name: true, avatarUrl: true } } } },
+  collaborations: {
+    where: { status: "ACCEPTED" },
+    select: { collaborator: { select: { id: true, username: true, name: true, avatarUrl: true } } },
+  },
   images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
@@ -28,6 +34,27 @@ function readOptionalField(formData: FormData, key: string, maxLength: number): 
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed ? trimmed.slice(0, maxLength) : null;
+}
+
+function readUsernameList(formData: FormData, key: string): string[] | null {
+  const value = formData.get(key);
+  if (value === null) return [];
+  if (typeof value !== "string") return null;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!Array.isArray(parsed) || parsed.length > 10 || parsed.some((username) => typeof username !== "string" || !/^[a-zA-Z0-9_]{3,20}$/.test(username))) return null;
+    return [...new Set(parsed.map((username) => username.toLowerCase()))];
+  } catch {
+    return null;
+  }
+}
+
+function withPeople<T extends {
+  tags: { user: { id: string; username: string; name: string | null; avatarUrl: string | null } }[];
+  collaborations: { collaborator: { id: string; username: string; name: string | null; avatarUrl: string | null } }[];
+}>(post: T) {
+  const { tags, collaborations, ...rest } = post;
+  return { ...rest, tags: tags.map((tag) => tag.user), collaborators: collaborations.map((collaboration) => collaboration.collaborator) };
 }
 
 // GET /api/posts -> feed: original posts and reposts from the current user and
@@ -71,7 +98,7 @@ export async function GET() {
   ]);
 
   const originalItems = originalPosts.map(({ likes, reposts, savedBy, ...post }) => ({
-    ...post,
+    ...withPeople(post),
     feedItemId: `post:${post.id}`,
     feedCreatedAt: post.createdAt,
     author: {
@@ -88,7 +115,7 @@ export async function GET() {
   const repostItems = repostEvents.map(({ id, createdAt, user, post }) => {
     const { likes, reposts, savedBy, ...originalPost } = post;
     return {
-      ...originalPost,
+      ...withPeople(originalPost),
       feedItemId: `repost:${id}`,
       feedCreatedAt: createdAt,
       author: {
@@ -135,6 +162,8 @@ export async function POST(request: Request) {
       ? [legacyImage]
       : [];
   const caption = formData.get("caption");
+  const taggedUsernames = readUsernameList(formData, "taggedUsernames");
+  const collaboratorUsernames = readUsernameList(formData, "collaboratorUsernames");
 
   if (files.length === 0) {
     return NextResponse.json({ error: "At least one image is required" }, { status: 400 });
@@ -155,6 +184,28 @@ export async function POST(request: Request) {
   if (typeof caption === "string" && caption.length > 2000) {
     return NextResponse.json({ error: "Caption must be at most 2000 characters" }, { status: 400 });
   }
+  if (taggedUsernames === null || collaboratorUsernames === null) {
+    return NextResponse.json({ error: "Invalid photographer tags" }, { status: 400 });
+  }
+
+  const requestedUsernames = [...new Set([...taggedUsernames, ...collaboratorUsernames])];
+  const mentionedUsernames = extractMentionedUsernames(typeof caption === "string" ? caption : "");
+  const [taggedUsers, mentionedUsers] = await Promise.all([
+    requestedUsernames.length > 0
+      ? prisma.user.findMany({
+          where: { id: { not: userId }, username: { in: requestedUsernames, mode: "insensitive" } },
+          select: { id: true, username: true },
+        })
+      : Promise.resolve([]),
+    mentionedUsernames.length > 0
+      ? prisma.user.findMany({
+          where: { id: { not: userId }, username: { in: mentionedUsernames, mode: "insensitive" } },
+          select: { id: true },
+        })
+      : Promise.resolve([]),
+  ]);
+  const collaboratorNames = new Set(collaboratorUsernames.map((username) => username.toLowerCase()));
+  const collaboratorIds = taggedUsers.filter((user) => collaboratorNames.has(user.username.toLowerCase())).map((user) => user.id);
 
   const imageUrls: string[] = [];
   try {
@@ -170,25 +221,41 @@ export async function POST(request: Request) {
   }
 
   try {
-    const post = await prisma.post.create({
-      data: {
-        authorId: userId,
-        imageUrl: imageUrls[0],
-        images: { create: imageUrls.map((imageUrl, sortOrder) => ({ imageUrl, sortOrder })) },
-        caption: typeof caption === "string" && caption.trim() ? caption.trim() : null,
-        cameraModel: readOptionalField(formData, "cameraModel", 60),
-        lensModel: readOptionalField(formData, "lensModel", 120),
-        focalLength: readOptionalField(formData, "focalLength", 20),
-        aperture: readOptionalField(formData, "aperture", 20),
-        shutterSpeed: readOptionalField(formData, "shutterSpeed", 20),
-        iso: readOptionalField(formData, "iso", 20),
-      },
-      select: POST_SELECT,
+    const post = await prisma.$transaction(async (tx) => {
+      const createdPost = await tx.post.create({
+        data: {
+          authorId: userId,
+          imageUrl: imageUrls[0],
+          images: { create: imageUrls.map((imageUrl, sortOrder) => ({ imageUrl, sortOrder })) },
+          caption: typeof caption === "string" && caption.trim() ? caption.trim() : null,
+          cameraModel: readOptionalField(formData, "cameraModel", 60),
+          lensModel: readOptionalField(formData, "lensModel", 120),
+          focalLength: readOptionalField(formData, "focalLength", 20),
+          aperture: readOptionalField(formData, "aperture", 20),
+          shutterSpeed: readOptionalField(formData, "shutterSpeed", 20),
+          iso: readOptionalField(formData, "iso", 20),
+          tags: taggedUsers.length > 0 ? { create: taggedUsers.map((user) => ({ userId: user.id })) } : undefined,
+          collaborations: collaboratorIds.length > 0 ? { create: collaboratorIds.map((collaboratorId) => ({ collaboratorId })) } : undefined,
+        },
+        select: POST_SELECT,
+      });
+
+      const collaboratorIdSet = new Set(collaboratorIds);
+      const mentionRecipients = mentionedUsers.filter((user) => !collaboratorIdSet.has(user.id));
+      if (collaboratorIds.length > 0 || mentionRecipients.length > 0) {
+        await tx.notification.createMany({
+          data: [
+            ...collaboratorIds.map((recipientId) => ({ type: "COLLAB_REQUEST" as const, actorId: userId, recipientId, postId: createdPost.id })),
+            ...mentionRecipients.map((user) => ({ type: "MENTION" as const, actorId: userId, recipientId: user.id, postId: createdPost.id })),
+          ],
+        });
+      }
+      return createdPost;
     });
 
     return NextResponse.json({
       post: {
-        ...post,
+        ...withPeople(post),
         images: getPostImages(post),
         author: { ...post.author, isFollowing: false },
         likedByMe: false,

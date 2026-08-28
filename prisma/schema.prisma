@@ -28,6 +28,8 @@ model User {
   updatedAt    DateTime @updatedAt
 
   posts        Post[]
+  postTags     PostTag[]
+  collaborations PostCollaboration[] @relation("PostCollaborator")
   likes        Like[]
   reposts      Repost[]
   savedPosts   SavedPost[]
@@ -83,11 +85,51 @@ model Post {
   savedBy  SavedPost[]
   comments Comment[]
   images   PostImage[]
+  tags     PostTag[]
+  collaborations PostCollaboration[]
   featuredAppearances FeaturedPhoto[]
   notifications Notification[]
 
   @@index([authorId])
   @@map("posts")
+}
+
+model PostTag {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+  @@map("post_tags")
+}
+
+enum CollaborationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model PostCollaboration {
+  id          String              @id @default(cuid())
+  status      CollaborationStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+  respondedAt DateTime?
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  collaboratorId String
+  collaborator   User   @relation("PostCollaborator", fields: [collaboratorId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, collaboratorId])
+  @@index([collaboratorId, status])
+  @@map("post_collaborations")
 }
 
 model PostImage {
@@ -202,6 +244,9 @@ enum NotificationType {
   COMMENT
   REPOST
   FOLLOW
+  MENTION
+  COLLAB_REQUEST
+  COLLAB_ACCEPTED
 }
 
 model Notification {

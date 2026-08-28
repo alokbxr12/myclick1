@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { extractMentionedUsernames } from "@/lib/mentions";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -57,6 +58,14 @@ export async function POST(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Comment must be at most 1000 characters" }, { status: 400 });
   }
 
+  const mentionedUsernames = extractMentionedUsernames(content);
+  const mentionedUsers = mentionedUsernames.length > 0
+    ? await prisma.user.findMany({
+        where: { id: { not: userId }, username: { in: mentionedUsernames, mode: "insensitive" } },
+        select: { id: true },
+      })
+    : [];
+
   const comment = await prisma.$transaction(async (tx) => {
     const createdComment = await tx.comment.create({
       data: { content, userId, postId },
@@ -78,6 +87,19 @@ export async function POST(request: Request, { params }: RouteParams) {
           postId,
           commentId: createdComment.id,
         },
+      });
+    }
+
+    const mentionRecipients = mentionedUsers.filter((user) => user.id !== post.authorId);
+    if (mentionRecipients.length > 0) {
+      await tx.notification.createMany({
+        data: mentionRecipients.map((user) => ({
+          type: "MENTION" as const,
+          actorId: userId,
+          recipientId: user.id,
+          postId,
+          commentId: createdComment.id,
+        })),
       });
     }
 

@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import { Avatar } from "./Avatar";
 import { CameraDetailsFields } from "./CameraDetailsFields";
 import { FollowButton } from "./FollowButton";
+import { MentionInput } from "./MentionInput";
+import { MentionText } from "./MentionText";
 import { ArrowUpIcon, BookmarkIcon, ChevronLeftIcon, ChevronRightIcon, HeartIcon, CommentIcon, ShareIcon, RepostIcon, MoreIcon, PolaroidCameraIcon } from "./Icons";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { PostLikesModal } from "./PostLikesModal";
@@ -185,24 +187,33 @@ export function PostCard({
         </div>
       )}
       <header className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
-        <Link href={`/profile/${post.author.username}`} className="group flex min-w-0 items-center gap-3">
-          <div className="rounded-full bg-gradient-to-br from-red-400 via-red-600 to-amber-500 p-[2px]">
-            <div className="rounded-full bg-[#101014] p-[2px]">
-              <Avatar src={post.author.avatarUrl} username={post.author.username} size={38} className="ring-0" />
+        <div className="group flex min-w-0 items-center gap-3">
+          <Link href={`/profile/${post.author.username}`} className="shrink-0 rounded-full transition group-hover:scale-[1.02]">
+            <div className="rounded-full bg-gradient-to-br from-red-400 via-red-600 to-amber-500 p-[2px]">
+              <div className="rounded-full bg-[#101014] p-[2px]">
+                <Avatar src={post.author.avatarUrl} username={post.author.username} size={38} className="ring-0" />
+              </div>
             </div>
-          </div>
+          </Link>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-white transition group-hover:text-red-300">
-              {post.author.name ?? post.author.username}
+            <p className="flex flex-wrap items-center gap-x-1.5 text-sm font-semibold text-white">
+              <Link href={`/profile/${post.author.username}`} className="truncate transition hover:text-red-300">{post.author.name ?? post.author.username}</Link>
+              {post.collaborators.map((collaborator, index) => (
+                <span key={collaborator.id} className="inline-flex min-w-0 items-center gap-x-1.5 text-white/46">
+                  <span>{index === 0 ? "with" : "&"}</span>
+                  <Link href={`/profile/${collaborator.username}`} className="truncate text-white transition hover:text-red-300">{collaborator.name ?? collaborator.username}</Link>
+                </span>
+              ))}
             </p>
             <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/32">
               <span className="truncate">@{post.author.username}</span>
-              <VerifiedBadge className="h-3 w-3" />
+              {post.collaborators.map((collaborator) => <span key={collaborator.id} className="truncate">& @{collaborator.username}</span>)}
+              <VerifiedBadge className="h-3 w-3 shrink-0" />
               <span aria-hidden="true">·</span>
               <time>{formatPostDate(post.createdAt)}</time>
             </div>
           </div>
-        </Link>
+        </div>
 
         <div className="flex shrink-0 items-center gap-2">
           {!isOwner && <FollowButton compact initialFollowing={post.author.isFollowing} username={post.author.username} />}
@@ -405,11 +416,18 @@ export function PostCard({
                   <span>{post.author.username}</span>
                   <VerifiedBadge className="h-3 w-3" />
                 </Link>
-                {caption}
+                <MentionText text={caption} />
               </p>
             )
           )}
         </div>
+
+        {!editing && post.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-white/38">
+            <span className="font-medium uppercase tracking-[0.12em] text-white/28">Tagged</span>
+            {post.tags.map((tag) => <Link key={tag.id} href={`/profile/${tag.username}`} className="font-semibold text-white/57 transition hover:text-red-300">@{tag.username}</Link>)}
+          </div>
+        )}
 
         {showComments && (
           <div className="mt-5 border-t border-white/[0.065] pt-5">
@@ -427,7 +445,7 @@ export function PostCard({
                       {session?.user?.id !== comment.user.id && <FollowButton compact username={comment.user.username} initialFollowing={comment.user.isFollowing} />}
                     </div>
                     <p className="break-words text-xs leading-5 text-white/58">
-                      {comment.content}
+                      <MentionText text={comment.content} />
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-white/28">
                       <time dateTime={comment.createdAt}>{formatCommentDateTime(comment.createdAt)}</time>
@@ -449,13 +467,7 @@ export function PostCard({
             </div>
 
             <form onSubmit={submitComment} className="mt-4 flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] p-1.5 focus-within:border-white/15">
-              <input
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Share what caught your eye…"
-                maxLength={1000}
-                className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs text-white outline-none placeholder:text-white/24"
-              />
+              <MentionInput value={newComment} onChange={setNewComment} placeholder="Share what caught your eye… Use @ to mention" maxLength={1000} className="min-w-0 w-full bg-transparent px-2 py-2 text-xs text-white outline-none placeholder:text-white/24" />
               <button
                 type="submit"
                 disabled={busy || !newComment.trim()}
@@ -519,7 +531,7 @@ function EditPostForm({
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.065] bg-black/15 p-3.5">
-      <textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={3} maxLength={2000} placeholder="Write about this photograph…" className={`${inputClass} resize-none`} />
+      <MentionInput value={caption} onChange={setCaption} rows={3} maxLength={2000} placeholder="Write about this photograph… Use @ to mention" className={`${inputClass} w-full resize-none`} />
       <CameraDetailsFields
         compact
         cameraModel={cameraModel}

@@ -31,7 +31,26 @@ export async function GET(request: Request) {
     },
   });
 
-  return NextResponse.json({ notifications, unreadCount });
+  const collaborationPostIds = notifications
+    .filter((notification) => notification.type === "COLLAB_REQUEST" && notification.post)
+    .map((notification) => notification.post!.id);
+  const collaborations = collaborationPostIds.length > 0
+    ? await prisma.postCollaboration.findMany({
+        where: { collaboratorId: userId, postId: { in: collaborationPostIds } },
+        select: { postId: true, status: true },
+      })
+    : [];
+  const collaborationStatuses = new Map(collaborations.map((collaboration) => [collaboration.postId, collaboration.status]));
+
+  return NextResponse.json({
+    notifications: notifications.map((notification) => ({
+      ...notification,
+      collaborationStatus: notification.type === "COLLAB_REQUEST" && notification.post
+        ? collaborationStatuses.get(notification.post.id) ?? null
+        : null,
+    })),
+    unreadCount,
+  });
 }
 
 // PATCH /api/activity -> mark the current member's activity as seen.

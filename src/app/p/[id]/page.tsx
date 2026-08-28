@@ -16,6 +16,11 @@ const POST_SELECT = {
   shutterSpeed: true,
   iso: true,
   author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+  tags: { select: { user: { select: { id: true, username: true, name: true, avatarUrl: true } } } },
+  collaborations: {
+    where: { status: "ACCEPTED" },
+    select: { collaborator: { select: { id: true, username: true, name: true, avatarUrl: true } } },
+  },
   images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
@@ -41,7 +46,7 @@ export default async function PostPage({
 
   if (!post) notFound();
 
-  const { likes, reposts, savedBy, ...rest } = post;
+  const { likes, reposts, savedBy, tags, collaborations, ...rest } = post;
   const isFollowing = rest.author.id !== userId && (await prisma.follow.findUnique({
     where: { followerId_followingId: { followerId: userId, followingId: rest.author.id } },
     select: { followerId: true },
@@ -50,6 +55,8 @@ export default async function PostPage({
     ...rest,
     createdAt: rest.createdAt.toISOString(),
     author: { ...rest.author, isFollowing },
+    tags: tags.map((tag) => tag.user),
+    collaborators: collaborations.map((collaboration) => collaboration.collaborator),
     images: getPostImages(rest),
     likedByMe: likes.length > 0,
     repostedByMe: reposts.length > 0,

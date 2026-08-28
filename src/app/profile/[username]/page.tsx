@@ -17,6 +17,11 @@ const POST_SELECT = {
   shutterSpeed: true,
   iso: true,
   author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+  tags: { select: { user: { select: { id: true, username: true, name: true, avatarUrl: true } } } },
+  collaborations: {
+    where: { status: "ACCEPTED" },
+    select: { collaborator: { select: { id: true, username: true, name: true, avatarUrl: true } } },
+  },
   images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
@@ -55,10 +60,15 @@ export default async function ProfilePage({
   if (!user) notFound();
 
   const isMe = user.id === currentUserId;
-  const [following, repostEntries] = await Promise.all([
+  const [following, repostEntries, collaborationEntries] = await Promise.all([
     prisma.follow.findMany({ where: { followerId: currentUserId }, select: { followingId: true } }),
     prisma.repost.findMany({
       where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      select: { post: { select: postSelect } },
+    }),
+    prisma.postCollaboration.findMany({
+      where: { collaboratorId: user.id, status: "ACCEPTED" },
       orderBy: { createdAt: "desc" },
       select: { post: { select: postSelect } },
     }),
@@ -74,11 +84,13 @@ export default async function ProfilePage({
   const isFollowing = !isMe && followingIds.has(user.id);
 
   const shapePost = (post: (typeof user.posts)[number]) => {
-    const { likes, reposts, savedBy, ...rest } = post;
+    const { likes, reposts, savedBy, tags, collaborations, ...rest } = post;
     return {
       ...rest,
       createdAt: rest.createdAt.toISOString(),
       author: { ...rest.author, isFollowing: followingIds.has(rest.author.id) },
+      tags: tags.map((tag) => tag.user),
+      collaborators: collaborations.map((collaboration) => collaboration.collaborator),
       images: getPostImages(rest),
       likedByMe: likes.length > 0,
       repostedByMe: reposts.length > 0,
@@ -86,14 +98,17 @@ export default async function ProfilePage({
     };
   };
 
-  const posts = user.posts.map(shapePost);
+  const posts = [...user.posts, ...collaborationEntries.map(({ post }) => post)]
+    .filter((post, index, all) => all.findIndex((candidate) => candidate.id === post.id) === index)
+    .sort((first, second) => second.createdAt.getTime() - first.createdAt.getTime())
+    .map(shapePost);
   const reposts = repostEntries.map(({ post }) => shapePost(post));
   const savedPosts = savedEntries.map(({ post }) => shapePost(post));
 
   return (
     <main className="app-profile-bg relative min-h-[calc(100vh-72px)] overflow-hidden pb-28 md:pb-12">
       <div className="relative mx-auto max-w-2xl px-4 py-7 sm:px-6 sm:py-10">
-        <ProfileHeader user={user} isMe={isMe} isFollowing={isFollowing} />
+        <ProfileHeader user={{ ...user, _count: { ...user._count, posts: posts.length } }} isMe={isMe} isFollowing={isFollowing} />
 
         <ProfilePostTabs posts={posts} reposts={reposts} savedPosts={savedPosts} isMe={isMe} />
       </div>

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { BellIcon, CommentIcon, HeartIcon, RepostIcon, UserProfileIcon } from "@/components/Icons";
 
-type ActivityType = "LIKE" | "COMMENT" | "REPOST" | "FOLLOW";
+type ActivityType = "LIKE" | "COMMENT" | "REPOST" | "FOLLOW" | "MENTION" | "COLLAB_REQUEST" | "COLLAB_ACCEPTED";
 
 type ActivityItem = {
   id: string;
@@ -15,6 +15,7 @@ type ActivityItem = {
   actor: { id: string; username: string; name: string | null; avatarUrl: string | null };
   post: { id: string; imageUrl: string; caption: string | null } | null;
   comment: { content: string } | null;
+  collaborationStatus: "PENDING" | "ACCEPTED" | "DECLINED" | null;
 };
 
 function relativeTime(value: string) {
@@ -31,6 +32,7 @@ function ActivityIcon({ type }: { type: ActivityType }) {
   if (type === "LIKE") return <HeartIcon filled className={className} />;
   if (type === "COMMENT") return <CommentIcon className={className} />;
   if (type === "REPOST") return <RepostIcon className={className} />;
+  if (type === "MENTION") return <CommentIcon className={className} />;
   return <UserProfileIcon className={className} />;
 }
 
@@ -44,6 +46,12 @@ function description(item: ActivityItem) {
       return "reposted your photograph";
     case "FOLLOW":
       return "started following you";
+    case "MENTION":
+      return "mentioned you";
+    case "COLLAB_REQUEST":
+      return "invited you to collaborate on a photograph";
+    case "COLLAB_ACCEPTED":
+      return "accepted your collaboration invite";
   }
 }
 
@@ -51,6 +59,7 @@ export default function ActivityPage() {
   const [notifications, setNotifications] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [collaborationBusy, setCollaborationBusy] = useState<string | null>(null);
 
   const loadActivity = useCallback(async () => {
     try {
@@ -72,6 +81,20 @@ export default function ActivityPage() {
     const frame = window.requestAnimationFrame(() => void loadActivity());
     return () => window.cancelAnimationFrame(frame);
   }, [loadActivity]);
+
+  async function respondToCollaboration(item: ActivityItem, response: "accept" | "decline") {
+    if (!item.post || collaborationBusy) return;
+    setCollaborationBusy(item.id);
+    const result = await fetch(`/api/posts/${item.post.id}/collaboration`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ response }),
+    });
+    setCollaborationBusy(null);
+    if (!result.ok) return;
+    const data = await result.json();
+    setNotifications((current) => current.map((notification) => notification.id === item.id ? { ...notification, collaborationStatus: data.status } : notification));
+  }
 
   return (
     <main className="mx-auto min-h-[calc(100vh-72px)] max-w-3xl px-4 pb-28 pt-7 sm:px-6 sm:pt-10">
@@ -113,7 +136,7 @@ export default function ActivityPage() {
               <BellIcon className="h-7 w-7" />
             </span>
             <h2 className="mt-4 text-base font-semibold text-white">Your activity will appear here</h2>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-white/45">Likes, comments, reposts, and new followers will show up as your community finds your work.</p>
+            <p className="mt-2 max-w-sm text-sm leading-6 text-white/45">Likes, comments, mentions, collaboration invites, reposts, and new followers will show up as your community finds your work.</p>
           </div>
         ) : (
           <ul className="divide-y divide-white/[0.065]">
@@ -133,6 +156,17 @@ export default function ActivityPage() {
                       {description(item)} <span className="ml-1 text-xs text-white/30">{relativeTime(item.createdAt)}</span>
                     </p>
                     {item.type === "COMMENT" && item.comment && <p className="mt-1 truncate text-xs text-white/38">“{item.comment.content}”</p>}
+                    {item.type === "COLLAB_REQUEST" && item.collaborationStatus === "PENDING" && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <button type="button" disabled={collaborationBusy === item.id} onClick={() => void respondToCollaboration(item, "accept")} className="rounded-lg bg-gradient-to-r from-[#f15b65] to-[#ed466b] px-2.5 py-1.5 text-[10px] font-bold text-white transition hover:brightness-110 disabled:opacity-50">
+                          Accept
+                        </button>
+                        <button type="button" disabled={collaborationBusy === item.id} onClick={() => void respondToCollaboration(item, "decline")} className="rounded-lg bg-white/[0.06] px-2.5 py-1.5 text-[10px] font-semibold text-white/60 transition hover:bg-white/[0.1] hover:text-white disabled:opacity-50">
+                          Decline
+                        </button>
+                      </div>
+                    )}
+                    {item.type === "COLLAB_REQUEST" && item.collaborationStatus && item.collaborationStatus !== "PENDING" && <p className="mt-1 text-[10px] font-semibold text-white/35">{item.collaborationStatus === "ACCEPTED" ? "Collaboration accepted" : "Collaboration declined"}</p>}
                   </div>
 
                   {item.post && (

@@ -17,6 +17,11 @@ const POST_SELECT = {
   shutterSpeed: true,
   iso: true,
   author: { select: { id: true, username: true, name: true, avatarUrl: true } },
+  tags: { select: { user: { select: { id: true, username: true, name: true, avatarUrl: true } } } },
+  collaborations: {
+    where: { status: "ACCEPTED" },
+    select: { collaborator: { select: { id: true, username: true, name: true, avatarUrl: true } } },
+  },
   images: { orderBy: { sortOrder: "asc" }, select: { id: true, imageUrl: true, sortOrder: true } },
   _count: { select: { likes: true, comments: true } },
 } as const;
@@ -50,8 +55,18 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  const { likes, reposts, savedBy, ...rest } = post;
-  return NextResponse.json({ post: { ...rest, images: getPostImages(rest), likedByMe: likes.length > 0, repostedByMe: reposts.length > 0, savedByMe: savedBy.length > 0 } });
+  const { likes, reposts, savedBy, tags, collaborations, ...rest } = post;
+  return NextResponse.json({
+    post: {
+      ...rest,
+      tags: tags.map((tag) => tag.user),
+      collaborators: collaborations.map((collaboration) => collaboration.collaborator),
+      images: getPostImages(rest),
+      likedByMe: likes.length > 0,
+      repostedByMe: reposts.length > 0,
+      savedByMe: savedBy.length > 0,
+    },
+  });
 }
 
 // PATCH /api/posts/:id -> edit caption (owner only)
@@ -91,7 +106,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     select: POST_SELECT,
   });
 
-  return NextResponse.json({ post });
+  const { tags, collaborations, ...rest } = post;
+  return NextResponse.json({ post: { ...rest, tags: tags.map((tag) => tag.user), collaborators: collaborations.map((collaboration) => collaboration.collaborator) } });
 }
 
 // DELETE /api/posts/:id -> delete a post (owner only)

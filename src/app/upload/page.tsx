@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { CloseIcon, UploadCloudIcon } from "@/components/Icons";
 import { CameraDetailsFields } from "@/components/CameraDetailsFields";
 import { ImageCropModal } from "@/components/ImageCropModal";
+import { MentionInput } from "@/components/MentionInput";
+import { PhotographerTagPicker, type PhotographerTag } from "@/components/PhotographerTagPicker";
 import { getImageUploadError, MAX_IMAGES_PER_POST, MAX_POST_IMAGE_BYTES } from "@/lib/image-upload-constraints";
 
 type UploadImage = {
@@ -68,6 +70,7 @@ export default function UploadPage() {
   const [images, setImages] = useState<UploadImage[]>([]);
   const [cropTargetId, setCropTargetId] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
+  const [photographerTags, setPhotographerTags] = useState<PhotographerTag[]>([]);
   const [cameraModel, setCameraModel] = useState("");
   const [lensModel, setLensModel] = useState("");
   const [focalLength, setFocalLength] = useState("");
@@ -189,6 +192,8 @@ export default function UploadPage() {
     const formData = new FormData();
     images.forEach((image) => formData.append("images", image.file));
     formData.append("caption", caption);
+    formData.append("taggedUsernames", JSON.stringify(photographerTags.map((tag) => tag.username)));
+    formData.append("collaboratorUsernames", JSON.stringify(photographerTags.filter((tag) => tag.inviteToCollaborate).map((tag) => tag.username)));
     formData.append("cameraModel", cameraModel);
     formData.append("lensModel", lensModel);
     formData.append("focalLength", focalLength);
@@ -260,7 +265,9 @@ export default function UploadPage() {
             </section>
           )}
 
-          <textarea placeholder="Write a caption…" value={caption} maxLength={2000} onChange={(event) => setCaption(event.target.value)} rows={3} className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.035] px-3.5 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-red-400/70 focus:ring-2 focus:ring-red-500/15" />
+          <MentionInput value={caption} onChange={setCaption} placeholder="Write a caption… Use @ to mention someone" maxLength={2000} rows={3} className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.035] px-3.5 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-red-400/70 focus:ring-2 focus:ring-red-500/15" />
+
+          <PhotographerTagPicker selected={photographerTags} onChange={setPhotographerTags} />
 
           <CameraDetailsFields
             cameraModel={cameraModel}
