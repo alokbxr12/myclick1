@@ -20,12 +20,15 @@ export function PostCard({
   onSavedChange,
   imageOverlay,
   showOwnerMenu = false,
+  fixedViewer = false,
 }: {
   post: Post;
   onDeleted?: (id: string) => void;
   onSavedChange?: (id: string, saved: boolean) => void;
   imageOverlay?: React.ReactNode;
   showOwnerMenu?: boolean;
+  /** Keeps the post inside a fixed-height viewer while preserving the photograph's aspect ratio. */
+  fixedViewer?: boolean;
 }) {
   const { data: session } = useSession();
   const [liked, setLiked] = useState(post.likedByMe);
@@ -177,16 +180,16 @@ export function PostCard({
 
   return (
     <>
-      <article className="overflow-hidden rounded-[1.75rem] border border-white/[0.075] bg-[#101014] shadow-[0_26px_80px_-48px_rgba(0,0,0,0.95)] transition duration-300 hover:border-white/[0.11]">
+      <article className={`overflow-hidden rounded-[1.75rem] border border-white/[0.075] bg-[#101014] shadow-[0_26px_80px_-48px_rgba(0,0,0,0.95)] transition duration-300 hover:border-white/[0.11] ${fixedViewer ? "flex h-full flex-col" : ""}`}>
       {post.repostedBy && (
-        <div className="flex items-center gap-2 border-b border-white/[0.055] bg-amber-300/[0.035] px-4 py-2 text-[10px] font-semibold text-amber-100/70 sm:px-5">
+        <div className={`flex items-center gap-2 border-b border-white/[0.055] bg-amber-300/[0.035] px-4 py-2 text-[10px] font-semibold text-amber-100/70 sm:px-5 ${fixedViewer ? "shrink-0" : ""}`}>
           <RepostIcon className="h-3.5 w-3.5 shrink-0 text-amber-200/80" />
           <Link href={`/profile/${post.repostedBy.username}`} className="truncate transition hover:text-amber-100">
             @{post.repostedBy.username} reposted this photograph
           </Link>
         </div>
       )}
-      <header className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
+      <header className={`flex items-center justify-between gap-4 px-4 py-4 sm:px-5 ${fixedViewer ? "shrink-0" : ""}`}>
         <div className="group flex min-w-0 items-center gap-3">
           <Link href={`/profile/${post.author.username}`} className="shrink-0 rounded-full transition group-hover:scale-[1.02]">
             <div className="rounded-full bg-gradient-to-br from-red-400 via-red-600 to-amber-500 p-[2px]">
@@ -252,10 +255,14 @@ export function PostCard({
         </div>
       </header>
 
-      <div className="relative flex min-h-[260px] w-full items-center justify-center overflow-hidden bg-black" onDoubleClick={toggleLike}>
+      <div className={`relative flex w-full items-center justify-center overflow-hidden bg-black ${fixedViewer ? "min-h-0 flex-1" : "min-h-[260px]"}`} onDoubleClick={toggleLike}>
         {/* Natural dimensions keep each photographer's original framing intact. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={activeImage.imageUrl} alt={post.caption ?? `Photograph by ${post.author.username}`} className="block h-auto max-h-[82vh] w-full object-contain" />
+        <img
+          src={activeImage.imageUrl}
+          alt={post.caption ?? `Photograph by ${post.author.username}`}
+          className={fixedViewer ? "block h-full max-h-full w-full object-contain" : "block h-auto max-h-[82vh] w-full object-contain"}
+        />
         {imageOverlay}
         {postImages.length > 1 && (
           <>
@@ -295,7 +302,7 @@ export function PostCard({
         )}
       </div>
 
-      <div className="px-4 pb-5 pt-4 sm:px-5 sm:pb-6">
+      <div className={`px-4 pb-5 pt-4 sm:px-5 sm:pb-6 ${fixedViewer ? "shrink-0" : ""}`}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div

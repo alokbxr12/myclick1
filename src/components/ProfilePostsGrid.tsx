@@ -80,7 +80,7 @@ export function ProfilePostsGrid({
 
       {openPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/78 px-3 py-4 backdrop-blur-sm sm:px-8 sm:py-8" onClick={close} role="dialog" aria-modal="true" aria-label="Photograph viewer">
-          <div className="relative flex w-full max-w-2xl items-center justify-center" onClick={(event) => event.stopPropagation()}>
+          <div className="relative flex h-[calc(100dvh-2rem)] w-full max-w-2xl items-center justify-center sm:h-[calc(100dvh-4rem)] sm:max-h-[46rem]" onClick={(event) => event.stopPropagation()}>
             <button
               onClick={showPrev}
               disabled={!hasPrev}
@@ -90,8 +90,9 @@ export function ProfilePostsGrid({
               <ChevronLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
 
-            <div className="custom-scrollbar max-h-[calc(100vh-2rem)] w-full overflow-y-auto rounded-[1.75rem] shadow-[0_32px_100px_-38px_rgba(0,0,0,1)] sm:max-h-[calc(100vh-4rem)]">
+            <div className="h-full w-full overflow-hidden rounded-[1.75rem] shadow-[0_32px_100px_-38px_rgba(0,0,0,1)]">
               <PostCard
+                key={openPost.id}
                 post={openPost}
                 onDeleted={handleDeleted}
                 onSavedChange={(postId, saved) => {
@@ -100,6 +101,7 @@ export function ProfilePostsGrid({
                   close();
                 }}
                 showOwnerMenu
+                fixedViewer
                 imageOverlay={
                   <button
                     onClick={close}
